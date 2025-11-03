@@ -6,13 +6,15 @@ import {
   ReactiveFormsModule,
 } from '@angular/forms';
 import { AuthFirebaseService } from '../../services/auth-firebase.service';
+import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { AutenticacionService } from '../../services/autenticacion.service';
 import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-solicitar-dni-google',
-  imports: [ReactiveFormsModule],
+  standalone: true,
+  imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './solicitar-dni-google.component.html',
 })
 export class SolicitarDniGoogleComponent {

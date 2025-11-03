@@ -7,9 +7,10 @@ import { ToastService } from '../../services/toast.service';
 
 @Component({
   selector: 'app-upload-file',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './upload-file.component.html',
-  styleUrl: './upload-file.component.css',
+  styleUrls: ['./upload-file.component.css'],
 })
 export class UploadFileComponent {
   @Input() turnoId: string = '';

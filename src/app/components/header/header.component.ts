@@ -74,8 +74,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   // Método helper para verificar roles
+  // Método helper para verificar roles (case-insensitive)
   hasRole(role: string, userProfile: any): boolean {
-    return userProfile && userProfile._rol === role;
+    if (!userProfile || !userProfile._rol || !role) return false
+    return String(userProfile._rol).toLowerCase() === String(role).toLowerCase()
   }
 
   // Método para alternar el menú móvil

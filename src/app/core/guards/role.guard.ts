@@ -30,8 +30,10 @@ export const roleGuard: CanActivateFn = (route, state) => {
         return router.parseUrl('/acceso-denegado');
       }
 
-      // Verificar si el perfil tiene el rol requerido
-      if (profile._rol === expectedRole) {
+      // Verificar si el perfil tiene el rol requerido (comparación insensible a mayúsculas/minúsculas)
+      const userRole = String(profile._rol || '').toLowerCase()
+      const reqRole = String(expectedRole || '').toLowerCase()
+      if (userRole === reqRole) {
         return true; // El usuario tiene el rol requerido
       } else {
         console.warn(

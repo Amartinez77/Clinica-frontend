@@ -171,7 +171,8 @@ export class AutenticacionService {
   hasRole(requiredRole: string): boolean {
     const profile = this._currentUserProfile.getValue();
     // del backend viene "_rol" por eso usamos "profile?._rol"
-    return !!(profile && profile._rol === requiredRole);
+    if (!profile || !profile._rol || !requiredRole) return false
+    return String(profile._rol).toLowerCase() === String(requiredRole).toLowerCase()
   }
 
   // Si necesitas chequear múltiples roles (ej: 'admin' O 'medico')
@@ -180,7 +181,8 @@ export class AutenticacionService {
     if (!profile || !profile._rol) {
       return false;
     }
-    return requiredRoles.includes(profile._rol);
+    const userRole = String(profile._rol).toLowerCase()
+    return requiredRoles.map(r => String(r).toLowerCase()).includes(userRole)
   }
 
   resetPassword(dni: string, newPassword: string): Observable<any> {

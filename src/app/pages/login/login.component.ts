@@ -17,6 +17,7 @@ import { filter, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
+  standalone: true,
   imports: [ReactiveFormsModule, CommonModule],
   templateUrl: './login.component.html',
 })
@@ -67,15 +68,13 @@ export class LoginComponent {
 
               // Mostrar toast de éxito
               this.toastService.showSuccess('Inicio de sesión exitoso');
-              // Redirigir según el rol
-              if (perfil._rol === 'Paciente') {
+              // Redirigir según el rol (comparación insensible a mayúsculas/minúsculas)
+              const role = String(perfil._rol || '').toLowerCase()
+              if (role === 'paciente' || role === 'usuario') {
                 this.router.navigate(['/paciente/', perfil._id]);
-              } else if (perfil._rol === 'Doctor') {
+              } else if (role === 'doctor' || role === 'medico') {
                 this.router.navigate(['/doctor/', perfil._id]);
-              } else if (
-                perfil._rol === 'admin' ||
-                perfil._rol === 'Administrador'
-              ) {
+              } else if (role === 'admin' || role === 'administrador') {
                 this.router.navigate(['/admin/']);
               } else {
                 this.toastService.showError('Rol no reconocido.');

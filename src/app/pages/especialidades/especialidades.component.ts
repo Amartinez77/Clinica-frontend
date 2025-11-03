@@ -63,12 +63,16 @@ export class EspecialidadesComponent implements OnInit {
     // Crear un mapa de especialidades para acceso rápido a las descripciones
     const especialidadesInfo = new Map<string, Especialidad>();
     especialidades.forEach(esp => {
-      especialidadesInfo.set(esp._id, esp);
+      // aceptar tanto _id (Mongo) como id (Sequelize)
+      const espId = (esp as any)._id || (esp as any).id || ''
+      if (espId) especialidadesInfo.set(String(espId), esp);
     });
 
     doctores.forEach(doctor => {
-      const especialidadId = doctor.especialidad._id;
-      const especialidadNombre = doctor.especialidad.nombre;
+      // especialidad puede venir como objeto con _id o id, o puede venir null
+      const espObj: any = doctor.especialidad || {};
+  const especialidadId = espObj._id || espObj.id || (doctor as any).especialidadId || '';
+      const especialidadNombre = espObj.nombre || '';
       const especialidadInfo = especialidadesInfo.get(especialidadId);
 
       if (!especialidadesMap.has(especialidadId)) {

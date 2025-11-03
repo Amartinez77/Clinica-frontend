@@ -2,6 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 
 // Interfaz para el doctor
 export interface Doctor {
@@ -39,7 +40,9 @@ export class EspecialidadesService {
   }
 
   getEspecialidades(): Observable<Especialidad[]> {
-    return this.http.get<Especialidad[]>(this.apiUrl);
+    return this.http.get<any[]>(this.apiUrl).pipe(
+      map(arr => arr.map(e => ({ ...e, _id: e.id ? String(e.id) : e._id })))
+    ) as Observable<Especialidad[]>;
   }
 
   getEspecialidadById(id: string): Observable<Especialidad> {

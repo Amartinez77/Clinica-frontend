@@ -1,4 +1,5 @@
 import { Component, inject, Input, OnInit } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { EspecialidadService } from '../../services/especialidad.service';
 import { DoctorService } from '../../services/doctor.service';
@@ -18,9 +19,10 @@ export interface Doctor {
 }
 @Component({
   selector: 'app-list-doctores',
-  imports: [FormsModule],
+  standalone: true,
+  imports: [CommonModule, FormsModule],
   templateUrl: './list-doctores.component.html',
-  styleUrl: './list-doctores.component.css'
+  styleUrls: ['./list-doctores.component.css']
 })
 
 export class ListDoctoresComponent implements OnInit {
