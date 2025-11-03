@@ -141,8 +141,9 @@ export class AutenticacionService {
       },
       error: (error) => {
         console.error('Error al cargar el perfil del usuario:', error);
-        this._currentUserProfile.next(null); // Si hay un error, limpiar el perfil
-        this.logout(); // Opcional: cerrar sesión si no se puede cargar el perfil
+        // No forzar logout aquí para evitar perder la sesión por errores transitorios.
+        // Mantener el token y estado de login, pero limpiar el perfil.
+        this._currentUserProfile.next(null);
       },
     });
   }

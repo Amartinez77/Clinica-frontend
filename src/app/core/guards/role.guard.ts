@@ -4,6 +4,7 @@ import { CanActivateFn, Router } from '@angular/router';
 import { AutenticacionService } from '../../services/autenticacion.service';
 import { map, take, filter, timeout, catchError } from 'rxjs/operators';
 import { of } from 'rxjs';
+import { jwtDecode } from 'jwt-decode';
 
 export const roleGuard: CanActivateFn = (route, state) => {
   const authService = inject(AutenticacionService);
@@ -42,9 +43,22 @@ export const roleGuard: CanActivateFn = (route, state) => {
         return router.parseUrl('/acceso-denegado'); // Al acceso denegado si no tiene el rol
       }
     }),
-    // Manejar timeout o errores
+    // Manejar timeout o errores: fallback a decodificar el token si hay uno
     catchError((error) => {
       console.error('RoleGuard: Error o timeout al cargar perfil:', error);
+      const token = authService.getToken();
+      if (token) {
+        try {
+          const decoded: any = jwtDecode(token);
+          const userRole = String(decoded?.usuario?.rol || '').toLowerCase();
+          const reqRole = String(expectedRole || '').toLowerCase();
+          if (userRole === reqRole) {
+            return of(true);
+          }
+        } catch (e) {
+          console.error('RoleGuard: Error al decodificar token en fallback:', e);
+        }
+      }
       return of(router.parseUrl('/acceso-denegado'));
     })
   );

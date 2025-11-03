@@ -13,6 +13,7 @@ import { initializeApp, provideFirebaseApp } from '@angular/fire/app';
 import { getAuth, provideAuth } from '@angular/fire/auth';
 import { getFirestore, provideFirestore } from '@angular/fire/firestore';
 import { getStorage, provideStorage } from '@angular/fire/storage';
+import { environment } from '../environments/environment';
 
 registerLocaleData(es);
 export const appConfig: ApplicationConfig = {
@@ -21,16 +22,7 @@ export const appConfig: ApplicationConfig = {
     provideRouter(routes),
     { provide: LOCALE_ID, useValue: 'es-AR' },
     provideHttpClient(),
-    provideFirebaseApp(() =>
-      initializeApp({
-        projectId: 'integral-pysw',
-        appId: '1:1017953502504:web:d454eeb11ee905f7903c1d',
-        storageBucket: 'integral-pysw.firebasestorage.app',
-        apiKey: 'AIzaSyBuha7KC6tp0BDstOGazSMZo549vvCG7WQ',
-        authDomain: 'integral-pysw.firebaseapp.com',
-        messagingSenderId: '1017953502504',
-      })
-    ),
+    provideFirebaseApp(() => initializeApp(environment.firebase)),
     provideAuth(() => getAuth()),
     provideFirestore(() => getFirestore()),
     provideStorage(() => getStorage()),

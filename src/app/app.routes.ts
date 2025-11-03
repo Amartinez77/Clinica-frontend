@@ -40,11 +40,24 @@ export const routes: Routes = [
     path: 'doctores',
     component: ListDoctoresComponent,
   },
+  // Compatibilidad con enlaces antiguos: redirigir /list-doctores -> /doctores
+  {
+    path: 'list-doctores',
+    redirectTo: 'doctores',
+    pathMatch: 'full',
+  },
 
   // Autenticación
   {
     path: 'login',
     component: LoginComponent,
+  },
+  // Alias para flujo de reserva: lista de doctores protegida para Paciente
+  {
+    path: 'turno-reserva',
+    component: ListDoctoresComponent,
+    canActivate: [authGuard, roleGuard],
+    data: { role: 'Paciente' },
   },
   {
     path: 'login/solicitud-dni',

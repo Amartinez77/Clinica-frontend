@@ -34,12 +34,26 @@
             Profesionales
           </a>
         </li>
-        <li class="nav-item">
-          <a class="nav-link custom-hover" [routerLink]="['/login']" routerLinkActive="active" (click)="closeMenu()">
-            <i class="bi bi-calendar-check-fill me-1"></i>
-            Agendar Turno
-          </a>
-        </li>
+        <!-- Agendar Turno: si es Paciente logueado -> '/turno-reserva'; si no, '/login' -->
+        <ng-container *ngIf="isLoggedIn$ | async; else agendarTurnoLogin">
+          <ng-container *ngIf="currentUserProfile$ | async as profile">
+            <li class="nav-item" *ngIf="hasRole('Paciente', profile)">
+              <a class="nav-link custom-hover" [routerLink]="['/turno-reserva']" routerLinkActive="active"
+                (click)="closeMenu()">
+                <i class="bi bi-calendar-check-fill me-1"></i>
+                Agendar Turno
+              </a>
+            </li>
+          </ng-container>
+        </ng-container>
+        <ng-template #agendarTurnoLogin>
+          <li class="nav-item">
+            <a class="nav-link custom-hover" [routerLink]="['/login']" routerLinkActive="active" (click)="closeMenu()">
+              <i class="bi bi-calendar-check-fill me-1"></i>
+              Agendar Turno
+            </a>
+          </li>
+        </ng-template>
       </ul>
 
       <!-- Botones de autenticación -->

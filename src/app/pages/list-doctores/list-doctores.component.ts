@@ -34,6 +34,8 @@ export class ListDoctoresComponent implements OnInit {
   especialidades: Especialidad[] = []
 
   doctores: Doctor[] = []
+  cargando: boolean = false
+  mensajeInfo: string = ''
   
   doctorService= inject(DoctorService);
   especialidadService= inject(EspecialidadService);
@@ -46,28 +48,48 @@ export class ListDoctoresComponent implements OnInit {
     });
   }
 
-  cargarDoctores(nombre: string = '', especialidad: string = '') {
+  cargarDoctores(nombre: string = '', especialidad: string | null | undefined = '') {
+    const name = (nombre ?? '').toString().trim();
+    const espId = (especialidad ?? '').toString().trim();
+    this.cargando = true;
+    this.mensajeInfo = '';
     // Si ambos filtros están vacíos, trae todos
-    if (nombre.trim() === '' && especialidad.trim() === '') {
+    if (name === '' && espId === '') {
       this.doctorService.getDoctores().subscribe((doctores: Doctor[] | null | undefined) => {
         this.doctores = Array.isArray(doctores) ? doctores : [];
+        this.cargando = false;
+        if (this.doctores.length === 0) {
+          this.mensajeInfo = 'No hay doctores cargados en el sistema.';
+        }
       });
-    } else if (nombre.trim() !== '' && especialidad.trim() === '') {
+    } else if (name !== '' && espId === '') {
       // Solo filtro por nombre
-      this.doctorService.getDoctoresByName(nombre).subscribe((doctores: Doctor[]) => {
+      this.doctorService.getDoctoresByName(name).subscribe((doctores: Doctor[]) => {
         this.doctores = doctores;
+        this.cargando = false;
+        if (this.doctores.length === 0) {
+          this.mensajeInfo = `No hay doctores cuyo nombre coincida con "${name}".`;
+        }
         console.log('Doctores filtrados por nombre:', this.doctores);
       });
-    } else if (nombre.trim() === '' && especialidad.trim() !== '') {
+    } else if (name === '' && espId !== '') {
       // Solo filtro por especialidad
-      this.doctorService.getDoctoresByEspecialidad(especialidad).subscribe((doctores: Doctor[] | null | undefined) => {
+      this.doctorService.getDoctoresByEspecialidad(espId).subscribe((doctores: Doctor[] | null | undefined) => {
         this.doctores = Array.isArray(doctores) ? doctores : [];
+        this.cargando = false;
+        if (this.doctores.length === 0) {
+          this.mensajeInfo = 'No hay doctores de la especialidad seleccionada.';
+        }
       });
     } else {
       // Filtro por ambos: primero por nombre, luego filtro por especialidad en el front
-      this.doctorService.getDoctoresByName(nombre).subscribe((doctores: Doctor[] | null | undefined) => {
+      this.doctorService.getDoctoresByName(name).subscribe((doctores: Doctor[] | null | undefined) => {
         const lista = Array.isArray(doctores) ? doctores : [];
-        this.doctores = lista.filter(doc => doc.especialidad?.nombre === especialidad);
+        this.doctores = lista.filter(doc => doc.especialidad?._id === espId || doc.especialidad?.nombre === espId);
+        this.cargando = false;
+        if (this.doctores.length === 0) {
+          this.mensajeInfo = 'No hay doctores que coincidan con los filtros seleccionados.';
+        }
       });
     }
   }

@@ -8,7 +8,8 @@ import { AutenticacionService } from '../../services/autenticacion.service';
 import { ToastService } from '../../services/toast.service';
 
 interface Especialidad {
-  _id: string;
+  id?: string;     // SQL (Sequelize)
+  _id?: string;    // Legacy (Mongo)
   nombre: string;
   descripcion: string;
 }

@@ -16,13 +16,21 @@
                 (change)="onFiltrarEspecialidad()">
                 <option value="">Todas las especialidades</option>
                 <ng-container *ngFor="let esp of especialidades">
-                    <option [ngValue]="esp._id">{{ esp.nombre }}</option>
+                    <option [value]="esp._id">{{ esp.nombre }}</option>
                 </ng-container>
             </select>
         </div>
     </div>
 
     <div class="row g-4">
+        <!-- Indicador de carga -->
+        <div class="col-12" *ngIf="cargando">
+            <div class="d-flex justify-content-center my-5">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Cargando...</span>
+                </div>
+            </div>
+        </div>
         <ng-container *ngFor="let doctor of doctoresFiltrados()">
             <div class="col-12 col-sm-6 col-lg-4">
                 <div class="card h-100 shadow-sm border-0">
@@ -50,15 +58,10 @@
                 </div>
             </div>
         </ng-container>
-        <ng-container *ngIf="doctores.length === 0">
+        <!-- Mensaje informativo cuando no hay resultados -->
+        <ng-container *ngIf="!cargando && doctores.length === 0">
             <div class="col-12">
-                <div class="alert alert-warning text-center">No hay doctores cargados en el sistema.</div>
-            </div>
-        </ng-container>
-        <ng-container *ngIf="doctores.length > 0 && doctoresFiltrados().length === 0">
-            <div class="col-12">
-                <div class="alert alert-info text-center">No se encontraron doctores con los filtros seleccionados.
-                </div>
+                <div class="alert alert-info text-center">{{ mensajeInfo || 'No se encontraron doctores.' }}</div>
             </div>
         </ng-container>
     </div>

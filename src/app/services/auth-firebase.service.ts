@@ -1,5 +1,4 @@
 import { inject, Injectable } from '@angular/core';
-import { from } from 'rxjs';
 import {
   Auth,
   createUserWithEmailAndPassword,
@@ -28,9 +27,8 @@ export class AuthFirebaseService {
       provider.addScope('profile');
       provider.addScope('email');
 
-      const result = await from(
-        signInWithPopup(this.auth, provider)
-      ).toPromise();
+      // Usar la API nativa (Promise) de AngularFire para evitar conversiones innecesarias
+      const result = await signInWithPopup(this.auth, provider);
 
       if (!result) throw new Error('No se pudo iniciar sesión con Google');
 
@@ -42,7 +40,8 @@ export class AuthFirebaseService {
 
   async logout() {
     try {
-      await from(signOut(this.auth)).toPromise();
+      // Usar la API nativa (Promise) de AngularFire
+      await signOut(this.auth);
       //this.router.navigate(['/login']);
     } catch (error) {
       throw error;
