@@ -1,6 +1,6 @@
 export const environment = {
   production: true,
-  apiUrl: 'https://proybackendgrupo03-production.up.railway.app/api',
+  apiUrl: '/api',
   firebase: {
     apiKey: "AIzaSyCB4ezJPyPrRnfp_hLBH3NInJxE2PrzbnI",
     authDomain: "clinica-app-e7b52.firebaseapp.com",
