@@ -105,12 +105,12 @@
               name="telefono"
               [(ngModel)]="paciente.telefono"
               required
-              pattern="^388[0-9]{7}$"
+              pattern="^[0-9]{10}$"
               #telefono="ngModel"
               placeholder="3881234567"
             />
             <div class="form-text text-muted small">
-              <i class="fas fa-info-circle me-1"></i>Formato: 388xxxxxxx
+              <i class="fas fa-info-circle me-1"></i>10 dígitos (ej: 3881234567)
             </div>
             <div
               class="text-danger small mt-1"
@@ -120,7 +120,7 @@
                 El teléfono es obligatorio.
               </div>
               <div *ngIf="telefono.errors?.['pattern']">
-                Debe comenzar con 388 y tener 10 dígitos.
+                El teléfono debe tener exactamente 10 dígitos.
               </div>
             </div>
           </div>

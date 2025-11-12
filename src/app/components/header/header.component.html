@@ -58,6 +58,9 @@
 
       <!-- Botones de autenticación -->
       <div class="d-flex align-items-center">
+        <!-- Debug info -->
+        <div style="display: none;">isLoggedIn: {{ isLoggedIn$ | async }}</div>
+        
         <ng-container *ngIf="isLoggedIn$ | async; else loginButton">
           <!-- Usuario logueado -->
           <ng-container *ngIf="currentUserProfile$ | async as profile">

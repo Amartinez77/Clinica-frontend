@@ -31,7 +31,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor() {}
 
   ngOnInit() {
-    // Lógica adicional al inicializar el componente si es necesaria
+    // Debug - verificar estado de login
+    this.isLoggedIn$.subscribe(status => {
+      console.log('[HEADER DEBUG] isLoggedIn$:', status);
+    });
+    this.currentUserProfile$.subscribe(profile => {
+      console.log('[HEADER DEBUG] currentUserProfile$:', profile);
+    });
   }
 
   ngOnDestroy() {
