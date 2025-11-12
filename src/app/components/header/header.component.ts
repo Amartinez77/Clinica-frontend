@@ -31,12 +31,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
   constructor() {}
 
   ngOnInit() {
-    // Debug - verificar estado de login
+    // Debug y verificación de estado
     this.isLoggedIn$.subscribe(status => {
-      console.log('[HEADER DEBUG] isLoggedIn$:', status);
+      console.log('[HEADER] isLoggedIn$:', status);
+      // Si no está logueado, asegurar que el perfil está limpio
+      if (!status) {
+        this.currentUserProfile$ = this.authService.currentUserProfile$;
+      }
     });
     this.currentUserProfile$.subscribe(profile => {
-      console.log('[HEADER DEBUG] currentUserProfile$:', profile);
+      console.log('[HEADER] currentUserProfile$:', profile);
     });
   }
 
