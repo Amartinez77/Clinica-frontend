@@ -9,11 +9,10 @@ import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import {
   AutenticacionService,
+  LoginRequest,
   UserProfile,
 } from '../../services/autenticacion.service';
 import { ToastService } from '../../services/toast.service';
-import { AuthFirebaseService } from '../../services/auth-firebase.service';
-import { filter, take } from 'rxjs/operators';
 
 @Component({
   selector: 'app-login',
@@ -24,7 +23,6 @@ import { filter, take } from 'rxjs/operators';
 export class LoginComponent {
   private fb = inject(FormBuilder);
   private autenticacionService = inject(AutenticacionService);
-  private autenticacionFirebaseService = inject(AuthFirebaseService);
   private router = inject(Router);
   private toastService = inject(ToastService);
 
@@ -32,159 +30,65 @@ export class LoginComponent {
   isLoading = false;
   showPassword = false;
 
+  userTypes = [
+    { label: 'Soy Paciente', value: 'paciente' as const },
+    { label: 'Soy Doctor', value: 'doctor' as const },
+    { label: 'Soy Admin', value: 'admin' as const },
+  ];
+
   constructor() {
     this.loginForm = this.fb.group({
       dni: ['', [Validators.required, Validators.pattern(/^[0-9]{7,8}$/)]],
       password: ['', [Validators.required, Validators.minLength(6)]],
+      tipo: ['paciente', Validators.required], // Valor por defecto 'paciente'
     });
   }
 
+  selectUserType(type: 'paciente' | 'doctor' | 'admin') {
+    this.loginForm.get('tipo')?.setValue(type);
+  }
+
   onSubmit() {
-    if (this.loginForm.valid) {
-      this.isLoading = true;
-
-      const loginData = {
-        dni: this.loginForm.get('dni')?.value,
-        password: this.loginForm.get('password')?.value,
-      };
-
-      this.autenticacionService.login(loginData).subscribe({
-        next: (response) => {
-          this.isLoading = false;
-          // Guardar token
-          this.autenticacionService.setToken(response.token);
-          // Mostrar toast de éxito
-          //this.toastService.showSuccess('Inicio de sesión exitoso');
-          // Obtener perfil del usuario autenticado
-          this.autenticacionService.getPerfilUsuario().subscribe({
-            next: (perfil) => {
-              // Verificar que el perfil no sea null
-              if (!perfil) {
-                this.toastService.showError(
-                  'No se pudo obtener el perfil del usuario.'
-                );
-                return;
-              }
-
-              // Mostrar toast de éxito
-              this.toastService.showSuccess('Inicio de sesión exitoso');
-              // Redirigir según el rol (comparación insensible a mayúsculas/minúsculas)
-              const role = String(perfil._rol || '').toLowerCase()
-              if (role === 'paciente' || role === 'usuario') {
-                this.router.navigate(['/paciente/', perfil._id]);
-              } else if (role === 'doctor' || role === 'medico') {
-                this.router.navigate(['/doctor/', perfil._id]);
-              } else if (role === 'admin' || role === 'administrador') {
-                this.router.navigate(['/admin/']);
-              } else {
-                this.toastService.showError('Rol no reconocido.');
-              }
-            },
-            error: (error) => {
-              this.toastService.showError('No se pudo obtener el perfil.');
-            },
-          });
-        },
-        error: (error) => {
-          this.isLoading = false;
-          console.error('Error en login:', error);
-
-          // Mostrar toast de error
-          const errorMessage =
-            error.error?.msg || 'Error de conexión. Intenta nuevamente.';
-          this.toastService.showError(errorMessage);
-        },
-      });
-    } else {
-      // Marcar todos los campos como touched para mostrar errores
+    if (this.loginForm.invalid) {
       this.loginForm.markAllAsTouched();
+      return;
     }
+
+    this.isLoading = true;
+    const loginData: LoginRequest = this.loginForm.value;
+    console.log('[LOGIN COMPONENT] Enviando datos de login:', loginData);
+
+    this.autenticacionService.login(loginData).subscribe({
+      next: () => {
+        this.isLoading = false;
+        this.toastService.showSuccess('Inicio de sesión exitoso');
+        
+        const perfil = this.autenticacionService.currentUserValue;
+        if (!perfil) {
+          this.toastService.showError('No se pudo obtener el perfil del usuario.');
+          return;
+        }
+
+        this.redirectUser(perfil);
+      },
+      error: (error) => {
+        this.isLoading = false;
+        const errorMessage = error.error?.msg || 'DNI, contraseña o tipo de usuario incorrecto.';
+        this.toastService.showError(errorMessage);
+      },
+    });
   }
 
-  get dni() {
-    return this.loginForm.get('dni');
-  }
-
-  get password() {
-    return this.loginForm.get('password');
-  }
-
-  togglePassword() {
-    this.showPassword = !this.showPassword;
-  }
-
-  onCreateAccount() {
-    // Navegación a página de registro
-    this.router.navigate(['/login/registro-paciente']);
-    console.log('Navegando a crear cuenta...');
-  }
-
-  async onGoogleLogin() {
-    try {
-      const result = await this.autenticacionFirebaseService.loginWithGoogle();
-      const token = await result.user.getIdToken();
-
-      this.autenticacionFirebaseService
-        .verificarUsuarioEnBackend(token)
-        .subscribe({
-          next: (response) => {
-            // Manejar la respuesta del backend
-            if (response.dniConfirmado === false) {
-              // Enviar todos los datos necesarios al componente de solicitud DNI
-              this.router.navigate(['/login/solicitud-dni'], {
-                state: {
-                  userData: response,
-                  token: token,
-                  googleUser: {
-                    email: result.user.email,
-                    displayName: result.user.displayName,
-                    photoURL: result.user.photoURL,
-                    uid: result.user.uid,
-                  },
-                },
-              });
-            } else {
-              // Usuario ya verificado, establecer token y redirigir
-              this.autenticacionService.setToken(response.token);
-
-              // Esperar a que el perfil se cargue automáticamente
-              this.autenticacionService.currentUserProfile$
-                .pipe(
-                  filter((perfil: UserProfile | null) => perfil !== null), // Esperar hasta que el perfil no sea null
-                  take(1) // Tomar solo el primer valor válido
-                )
-                .subscribe({
-                  next: (perfil) => {
-                    if (perfil) {
-                      this.toastService.showSuccess('Inicio de sesión exitoso');
-                      this.router.navigate(['/paciente/', perfil._id]);
-                    }
-                  },
-                  error: (error) => {
-                    console.error(
-                      'Error al obtener perfil del usuario:',
-                      error
-                    );
-                    this.toastService.showError(
-                      'No se pudo obtener el perfil del usuario.'
-                    );
-                  },
-                });
-            }
-          },
-          error: (error) => {
-            this.toastService.showError(
-              'Error al verificar usuario en backend'
-            );
-          },
-        });
-    } catch (error) {
-      console.log('Error en inicio de sesión con Google:', error);
+  private redirectUser(perfil: UserProfile) {
+    const role = perfil.tipo;
+    if (role === 'paciente') {
+      this.router.navigate(['/paciente/', perfil.id]);
+    } else if (role === 'doctor') {
+      this.router.navigate(['/doctor/', perfil.id]);
+    } else if (role === 'admin') {
+      this.router.navigate(['/admin/']);
+    } else {
+      this.toastService.showError('Rol no reconocido.');
     }
-  }
-
-  onForgotPassword() {
-    // Navegación a página de resetear contraseña
-    this.router.navigate(['/resetear-password']);
   }
 }

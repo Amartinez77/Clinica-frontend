@@ -1,7 +1,6 @@
 import { Component, OnDestroy, OnInit, HostListener } from '@angular/core';
 import { RouterLink, RouterModule } from '@angular/router';
 import { AutenticacionService } from '../../services/autenticacion.service';
-import { AuthFirebaseService } from '../../services/auth-firebase.service';
 import { AsyncPipe, CommonModule, TitleCasePipe } from '@angular/common';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
@@ -15,7 +14,6 @@ import { Router } from '@angular/router';
 export class HeaderComponent implements OnInit, OnDestroy {
   // Servicios inyectados
   private authService = inject(AutenticacionService);
-  private authFirebaseService = inject(AuthFirebaseService);
   private router = inject(Router);
 
   // Observables reactivos para el template
@@ -68,19 +66,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Método para cerrar sesión
-  async logout() {
-    try {
-      // Cerrar sesión en Firebase primero
-      await this.authFirebaseService.logout();
-    } catch (error) {
-      console.warn('Error al cerrar sesión en Firebase:', error);
-    }
-
-    // Cerrar sesión en el servicio local
+  // Logout
+  logout() {
     this.authService.logout();
-    this.closeDropdown();
-    this.router.navigate(['/']);
+    this.isDropdownOpen = false; // Cerrar dropdown
+    this.isMenuCollapsed = true; // Cerrar menú móvil
+    this.router.navigate(['/login']);
   }
 
   // Método helper para verificar roles

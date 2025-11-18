@@ -3,11 +3,10 @@ import { Component, inject, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import {
   Archivo,
-  Paciente,
   Turno,
   TurnoService,
 } from '../../services/turno.service';
-import { PacienteService } from '../../services/paciente.service';
+import { Paciente, PacienteService } from '../../services/paciente.service';
 import { Doctor, DoctorService } from '../../services/doctor.service';
 import { Router } from '@angular/router';
 import { AutenticacionService } from '../../services/autenticacion.service';
@@ -30,7 +29,7 @@ export class MainAdminComponent implements OnInit {
   filtroDni = '';
   turnosFiltrados: Turno[] = [];
   showEliminarDoctorModal = false;
-  doctorAEliminar: any = null;
+  doctorAEliminar: Doctor | null = null;
   showConfirmPagoModal = false;
 
   turnoService = inject(TurnoService);
@@ -73,16 +72,16 @@ export class MainAdminComponent implements OnInit {
     this.router.navigate(['/registro-doctor']); //cambiar a /admin/registro-doctor
   }
 
-  openEliminarDoctorModal(doctor: any) {
+  openEliminarDoctorModal(doctor: Doctor) {
     this.doctorAEliminar = doctor;
     this.showEliminarDoctorModal = true;
   }
 
   confirmarEliminarDoctor() {
-    if (!this.doctorAEliminar || !this.doctorAEliminar._id) return;
+    if (!this.doctorAEliminar || !this.doctorAEliminar.id) return;
 
     this.doctorService
-      .desactivarDoctor(this.doctorAEliminar._id, this.token)
+      .desactivarDoctor(this.doctorAEliminar.id, this.token)
       .subscribe({
         next: () => {
           // Actualizar la lista de doctores después de eliminar
@@ -92,10 +91,10 @@ export class MainAdminComponent implements OnInit {
           });
           // Si tienes la referencia al doctor en la lista actual, actualiza su estado localmente
           const idx = this.doctores.findIndex(
-            (d) => d._id === this.doctorAEliminar._id
+            (d) => d.id === this.doctorAEliminar!.id
           );
           if (idx !== -1) {
-            this.doctores[idx].activo = false;
+            this.doctores[idx].estado = 'inactivo';
           }
           this.showEliminarDoctorModal = false;
           this.doctorAEliminar = null;
@@ -115,6 +114,7 @@ export class MainAdminComponent implements OnInit {
   }
 
   onclickConfirmar(idTurno: string) {
+    if (!idTurno) return;
     this.turnoService.confirmarTurno(idTurno, this.token).subscribe(() => {
       // Actualizar la lista de turnos después de confirmar
       this.turnoService.getTurnosPendientes().subscribe((turnos: Turno[]) => {
@@ -146,10 +146,10 @@ export class MainAdminComponent implements OnInit {
         this.pacienteService
           .getPacienteByDni(this.filtroDni)
           .subscribe({
-            next: (paciente: any) => {
-              if (paciente && paciente._id) {
+            next: (paciente: Paciente) => {
+              if (paciente && paciente.id) {
                 this.turnoService
-                  .getTurnosByPacienteId(paciente._id)
+                  .getTurnosByPacienteId(paciente.id)
                   .subscribe({
                     next: (turnos: Turno[]) => {
                       const fechaFiltro = this.formatearFechaString(this.filtroFecha);
@@ -188,10 +188,10 @@ export class MainAdminComponent implements OnInit {
         this.pacienteService
           .getPacienteByDni(this.filtroDni)
           .subscribe({
-            next: (paciente: any) => {
-              if (paciente && paciente._id) {
+            next: (paciente: Paciente) => {
+              if (paciente && paciente.id) {
                 this.turnoService
-                  .getTurnosByPacienteId(paciente._id)
+                  .getTurnosByPacienteId(paciente.id)
                   .subscribe({
                     next: (turnos: Turno[]) => {
                       this.turnosFiltrados = turnos;

@@ -26,80 +26,111 @@
   </div>
 
   <!-- Lista de Especialidades -->
-  <div *ngIf="!cargando && !error && especialidades.length > 0" class="row g-4">
-    <div class="col-12" *ngFor="let especialidad of especialidades; let i = index">
-      <div class="card border-0 shadow-sm h-100">
+  <div *ngIf="!cargando && !error && especialidades.length > 0" class="row g-3">
+    <div class="col-12 col-md-6 col-lg-4" *ngFor="let especialidad of especialidades; let i = index">
+      <div class="card border-0 shadow-sm h-100 cursor-pointer" 
+           (click)="toggleEspecialidad(especialidad)"
+           [class.bg-primary]="especialidad.expandida"
+           [class.bg-light]="!especialidad.expandida">
+        
+        <!-- Card Header - Siempre Visible -->
         <div class="card-body p-4">
-          <!-- Header de la especialidad -->
-          <div class="d-flex align-items-start mb-3">
+          <div class="d-flex align-items-start">
             <div class="flex-shrink-0 me-3">
-              <div class="bg-primary bg-gradient rounded-circle p-3 text-white">
-                <i class="bi bi-hospital fs-4"></i>
+              <div class="rounded-circle p-3 text-white"
+                   [class.bg-primary]="!especialidad.expandida"
+                   [class.bg-white]="especialidad.expandida">
+                <i class="bi bi-hospital fs-4" 
+                   [class.text-primary]="especialidad.expandida"></i>
               </div>
             </div>
             <div class="flex-grow-1">
-              <h3 class="card-title fw-bold text-dark mb-2">{{ especialidad.nombre }}</h3>
-              <p class="text-muted mb-3" *ngIf="especialidad.descripcion">
+              <h3 class="card-title fw-bold mb-1" 
+                  [class.text-white]="especialidad.expandida"
+                  [class.text-dark]="!especialidad.expandida">
+                {{ especialidad.nombre }}
+              </h3>
+              <p class="mb-2" 
+                 [class.text-white-50]="especialidad.expandida"
+                 [class.text-muted]="!especialidad.expandida">
                 {{ especialidad.descripcion }}
               </p>
-              <div class="d-flex align-items-center">
-                <span class="badge bg-primary bg-opacity-10 text-primary rounded-pill px-3 py-2">
+              <div class="d-flex align-items-center justify-content-between">
+                <span class="badge"
+                      [class.bg-white]="especialidad.expandida"
+                      [class.text-primary]="especialidad.expandida"
+                      [class.bg-primary]="!especialidad.expandida"
+                      [class.bg-opacity-10]="!especialidad.expandida"
+                      [class.text-primary]="!especialidad.expandida"
+                      [class.rounded-pill]="true"
+                      [class.px-3]="true"
+                      [class.py-2]="true">
                   <i class="bi bi-people me-1"></i>
                   {{ especialidad.doctores.length }}
                   {{ especialidad.doctores.length === 1 ? 'Profesional' : 'Profesionales' }}
                 </span>
+                <i class="bi" 
+                   [class.bi-chevron-down]="!especialidad.expandida"
+                   [class.bi-chevron-up]="especialidad.expandida"
+                   [class.text-white]="especialidad.expandida"
+                   [class.text-primary]="!especialidad.expandida"></i>
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Lista de profesionales -->
-          <div class="mt-4">
-            <h6 class="text-muted mb-3 fw-semibold">
-              <i class="bi bi-person-badge me-2"></i>
-              Profesionales Disponibles
-            </h6>
+        <!-- Card Body - Mostrado al expandir -->
+        <div *ngIf="especialidad.expandida" class="card-footer border-0 p-4 bg-primary bg-opacity-50">
+          <h6 class="text-white mb-3 fw-semibold">
+            <i class="bi bi-person-badge me-2"></i>
+            Profesionales Disponibles
+          </h6>
 
-            <div class="row g-3">
-              <div class="col-md-6" *ngFor="let doctor of especialidad.doctores">
-                <div class="d-flex align-items-center p-3 bg-light rounded-3 border">
-                  <div class="flex-shrink-0 me-3">
-                    <div class="bg-white rounded-circle p-2 shadow-sm">
-                      <i class="bi bi-person-circle text-primary fs-5"></i>
-                    </div>
+          <div class="row g-2 mb-3">
+            <div class="col-12" *ngFor="let doctor of especialidad.mostrandoDoctores">
+              <div class="d-flex align-items-center p-3 bg-white rounded-3 border">
+                <div class="flex-shrink-0 me-3">
+                  <div class="bg-light rounded-circle p-2">
+                    <i class="bi bi-person-circle text-primary fs-5"></i>
                   </div>
-                  <div class="flex-grow-1">
-                    <h6 class="mb-1 fw-semibold text-dark">
-                      {{ getNombreCompleto(doctor) }}
-                    </h6>
-                    <small class="text-muted">
-                      <i class="bi bi-geo-alt me-1"></i>
-                      Consultorio {{ especialidad.nombre }}
-                    </small>
-                  </div>
-                  <div class="flex-shrink-0">
-                    <button class="btn btn-outline-primary btn-sm" [routerLink]="['/doctor', doctor._id]"
-                      title="Ver perfil del profesional">
-                      <i class="bi bi-eye"></i>
-                    </button>
-                  </div>
+                </div>
+                <div class="flex-grow-1">
+                  <h6 class="mb-1 fw-semibold text-dark">
+                    {{ getNombreCompleto(doctor) }}
+                  </h6>
+                  <small class="text-muted">
+                    <i class="bi bi-telephone me-1"></i>
+                    {{ doctor.telefono }}
+                  </small>
+                </div>
+                <div class="flex-shrink-0">
+                  <button class="btn btn-sm btn-outline-primary" 
+                          [routerLink]="['/doctor', doctor.id]"
+                          title="Ver perfil del profesional">
+                    <i class="bi bi-eye"></i>
+                  </button>
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Botón de acción -->
-          <div class="mt-4 pt-3 border-top">
-            <div class="d-flex justify-content-between align-items-center">
-              <small class="text-muted">
-                <i class="bi bi-clock me-1"></i>
-                Horarios de atención disponibles
-              </small>
-              <button class="btn btn-primary" [routerLink]="['/login']"
-                title="Reservar turno en {{ especialidad.nombre }}">
-                <i class="bi bi-calendar-plus me-2"></i>
-                Reservar Turno
-              </button>
-            </div>
+          <!-- Botón Ver más -->
+          <div *ngIf="tieneMasDoctores(especialidad)" class="d-grid gap-2 mb-2">
+            <button class="btn btn-light btn-sm" (click)="verMasDoctores(especialidad); $event.stopPropagation()">
+              <i class="bi bi-arrow-down me-2"></i>
+              Ver más ({{ totalMostrados(especialidad) }}/{{ especialidad.doctores.length }})
+            </button>
+          </div>
+
+          <!-- Botón Reservar -->
+          <div class="d-grid gap-2">
+            <button class="btn btn-light fw-semibold" 
+                    [routerLink]="['/login']"
+                    (click)="$event.stopPropagation()"
+                    title="Reservar turno en {{ especialidad.nombre }}">
+              <i class="bi bi-calendar-plus me-2"></i>
+              Reservar Turno
+            </button>
           </div>
         </div>
       </div>

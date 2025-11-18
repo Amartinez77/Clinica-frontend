@@ -57,7 +57,10 @@ export class TurnoService {
   }
   //falta el create turno
   crearTurno(idPaciente: string, idDoctor: string, fecha: string, hora: string, observaciones: string): Observable<any> {
-    const body = { fecha, hora, observaciones };
+    // Convertir fecha y hora a formato ISO 8601 que el backend espera
+    const fechaHora = new Date(`${fecha}T${hora}:00`).toISOString();
+    const body = { fechaHora, observaciones };
+    console.log('[TurnoService] crearTurno - fecha:', fecha, 'hora:', hora, 'fechaHora:', fechaHora);
     return this.http.post(`${this.apiUrl}/paciente/${idPaciente}/doctor/${idDoctor}`, body);
   }
   //update turno observaciones solo

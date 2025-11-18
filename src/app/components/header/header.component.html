@@ -82,7 +82,7 @@
                 <li>
                   <span class="dropdown-item-text text-muted small">
                     <i class="bi bi-shield-check me-2"></i>
-                    {{ profile._rol | titlecase }}
+                    {{ profile.tipo | titlecase }}
                   </span>
                 </li>
                 <li>
@@ -90,10 +90,10 @@
                 </li>
 
                 <!-- Enlaces específicos del perfil -->
-                <ng-container [ngSwitch]="profile._rol">
+                <ng-container [ngSwitch]="profile.tipo">
                   <ng-container *ngSwitchCase="'Paciente'">
                     <li>
-                      <a class="dropdown-item" [routerLink]="['/paciente', profile._id]" (click)="closeDropdown()">
+                      <a class="dropdown-item" [routerLink]="['/paciente', profile.id]" (click)="closeDropdown()">
                         <i class="bi bi-house-door me-2"></i>
                         Mi Panel
                       </a>
@@ -108,7 +108,7 @@
 
                   <ng-container *ngSwitchCase="'Doctor'">
                     <li>
-                      <a class="dropdown-item" [routerLink]="['/doctor', profile._id]" (click)="closeDropdown()">
+                      <a class="dropdown-item" [routerLink]="['/doctor', profile.id]" (click)="closeDropdown()">
                         <i class="bi bi-stethoscope me-2"></i>
                         Mi Panel
                       </a>
@@ -197,13 +197,13 @@
               <!-- Información del usuario -->
               <div class="text-center py-2 border-bottom">
                 <div class="fw-bold text-primary">{{ profile.nombre }} {{ profile.apellido }}</div>
-                <small class="text-muted">{{ profile._rol | titlecase }}</small>
+                <small class="text-muted">{{ profile.tipo | titlecase }}</small>
               </div>
 
               <!-- Enlaces directos según el rol -->
-              <ng-container [ngSwitch]="profile._rol">
+              <ng-container [ngSwitch]="profile.tipo">
                 <ng-container *ngSwitchCase="'Paciente'">
-                  <a class="btn btn-outline-primary my-1" [routerLink]="['/paciente', profile._id]"
+                  <a class="btn btn-outline-primary my-1" [routerLink]="['/paciente', profile.id]"
                     (click)="closeMenu()">
                     <i class="bi bi-person-circle me-2"></i>
                     Mi Panel
@@ -211,7 +211,7 @@
                 </ng-container>
 
                 <ng-container *ngSwitchCase="'Doctor'">
-                  <a class="btn btn-outline-primary my-1" [routerLink]="['/doctor', profile._id]" (click)="closeMenu()">
+                  <a class="btn btn-outline-primary my-1" [routerLink]="['/doctor', profile.id]" (click)="closeMenu()">
                     <i class="bi bi-stethoscope me-2"></i>
                     Mi Panel
                   </a>

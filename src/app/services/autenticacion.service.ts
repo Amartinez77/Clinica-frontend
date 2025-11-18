@@ -1,74 +1,162 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable, BehaviorSubject, tap, catchError, of } from 'rxjs';
+import { Observable, BehaviorSubject, tap, catchError, of, map, firstValueFrom, throwError } from 'rxjs';
 import { environment } from '../../environments/environment';
 import { jwtDecode } from 'jwt-decode';
 
-// Definición de las interfaces para las solicitudes y respuestas de autenticación
+// --- INICIO DE INTERFACES ---
 
-// interface para los guards
-export interface LoginRequest {
-  dni: string;
-  password: string;
-}
-
-export interface LoginResponse {
-  token: string;
-}
-
-// interface para el payload del token JWT (decodificado)
-interface DecodeJwtPayload {
-  usuario: {
-    id: string;
-    rol: string; // 'paciente', 'medico', 'administrador'
-  };
-  exp: number; // Fecha de expiración del token
-  iat: number; // Fecha de emisión del token
-}
-
-// interface para el perfil del usuario
-export interface UserProfile {
-  _id: string;
+// Estructura de datos base del usuario, devuelta por la API
+export interface Usuario {
+  id: number;
   dni: string;
   nombre: string;
   apellido: string;
   email: string;
+  tipo: 'paciente' | 'doctor' | 'admin';
+}
+
+// Perfil específico de Paciente
+export interface PacienteProfile {
+  id: number;
+  usuario_id: number;
   telefono: string;
   fechaNacimiento: Date;
-  _rol: string; // 'paciente', 'medico', 'administrador'
 }
+
+// Perfil específico de Doctor
+export interface DoctorProfile {
+  id: number;
+  usuario_id: number;
+  telefono: string;
+  matricula: string;
+}
+
+// Respuesta completa de la API para un perfil de usuario
+export interface ApiUserProfile extends Usuario {
+  Paciente?: PacienteProfile;
+  Doctor?: DoctorProfile;
+}
+
+// Petición de login
+export interface LoginRequest {
+  dni: string;
+  password: string;
+  tipo: 'paciente' | 'doctor' | 'admin';
+}
+
+// Respuesta del login
+export interface LoginResponse {
+  token: string;
+  user: ApiUserProfile;
+}
+
+// Payload del token decodificado
+interface DecodeJwtPayload {
+  usuario: {
+    id: string;
+    tipo: 'paciente' | 'doctor' | 'admin';
+  };
+  exp: number;
+  iat: number;
+}
+
+// Perfil de usuario APLANADO para uso interno en el frontend
+export interface UserProfile {
+  id: string;
+  usuario_id: string;
+  dni: string;
+  nombre: string;
+  apellido: string;
+  email: string;
+  tipo: 'paciente' | 'doctor' | 'admin';
+  telefono?: string;
+  fechaNacimiento?: Date;
+  matricula?: string;
+}
+
+// --- FIN DE INTERFACES ---
 
 @Injectable({
   providedIn: 'root',
 })
 export class AutenticacionService {
   private http = inject(HttpClient);
-
   private apiUrl = `${environment.apiUrl}/auth`;
   private tokenKey = 'auth_token';
 
-  // usamos BehaviorSubject para manejar el estado de autenticación
-  private _isLoggedIn = new BehaviorSubject<boolean>(this.checkTokenValidity());
+  private _isLoggedIn = new BehaviorSubject<boolean>(false);
   public isLoggedIn$ = this._isLoggedIn.asObservable();
 
-  //BehaviorSubject para el perfil del usuario
   private _currentUserProfile = new BehaviorSubject<UserProfile | null>(null);
   public currentUserProfile$ = this._currentUserProfile.asObservable();
 
-  //contructor: Intenta cargar el perfil del usuario al iniciar el servicio si hay un token
+  private _initializationPromise: Promise<void> | null = null;
+  private _isInitialized = false;
+
+  public get currentUserValue(): UserProfile | null {
+    return this._currentUserProfile.getValue();
+  }
+
   constructor() {
-    console.log('AutenticacionService iniciado');
-    if (this.isLoggedIn()) {
-      console.log('Usuario ya autenticado, cargando perfil...');
-      this.loadUserProfile();
-    } else {
-      console.log('Usuario no autenticado');
+    console.log('[AutenticacionService] Constructor START');
+    console.log('[AutenticacionService] Token en localStorage:', this.getToken() ? 'SÍ' : 'NO');
+    console.log('[AutenticacionService] Token válido:', this.checkTokenValidity() ? 'SÍ' : 'NO');
+    
+    this._initializationPromise = this.initializeAuth();
+    console.log('[AutenticacionService] Constructor END');
+  }
+
+  private async initializeAuth(): Promise<void> {
+    console.log('[initializeAuth] START');
+    
+    try {
+      const token = this.getToken();
+      console.log('[initializeAuth] Token:', token ? token.substring(0, 20) + '...' : 'null');
+      
+      const isValid = this.checkTokenValidity();
+      console.log('[initializeAuth] Token válido:', isValid);
+      
+      if (!isValid) {
+        console.log('[initializeAuth] No hay token válido, completando');
+        this._isInitialized = true;
+        return;
+      }
+      
+      console.log('[initializeAuth] Llamando al endpoint /api/auth/perfil');
+      const profile = await firstValueFrom(
+        this.http.get<ApiUserProfile>(`${this.apiUrl}/perfil`, {
+          headers: { Authorization: `Bearer ${token}` },
+        })
+      );
+      console.log('[initializeAuth] Respuesta del servidor:', profile);
+      
+      const normalizedProfile = this._normalizeUserProfile(profile);
+      console.log('[initializeAuth] Perfil normalizado:', normalizedProfile);
+      
+      this._currentUserProfile.next(normalizedProfile);
+      this._isLoggedIn.next(true);
+      
+      console.log('[initializeAuth] SUCCESS - Usuario autenticado');
+    } catch (error: any) {
+      console.error('[initializeAuth] ERROR:', error?.status, error?.statusText, error?.message);
+      console.error('[initializeAuth] Error completo:', error);
+      this.logout();
+    } finally {
+      this._isInitialized = true;
+      console.log('[initializeAuth] END');
     }
   }
 
-  // login(credentials: LoginRequest): Observable<LoginResponse> {
-  //   return this.http.post<LoginResponse>(`${this.apiUrl}/login`, credentials);
-  // }
+  // Retorna una promesa que se resuelve cuando la autenticación está lista
+  public getInitialization(): Promise<void> {
+    console.log('[getInitialization] llamado, _isInitialized:', this._isInitialized);
+    return this._initializationPromise || Promise.resolve();
+  }
+
+  resetPassword(dni: string, newPassword: string): Observable<any> {
+    return this.http.post(`${this.apiUrl}/reset-password`, { dni, newPassword });
+  }
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
     return this.http
@@ -76,15 +164,34 @@ export class AutenticacionService {
       .pipe(
         tap((response) => {
           this.setToken(response.token);
+          const normalizedProfile = this._normalizeUserProfile(response.user);
+          this._currentUserProfile.next(normalizedProfile);
           this._isLoggedIn.next(true);
-          this.loadUserProfile();
         }),
         catchError((error) => {
           console.error('Error de inicio de sesión:', error);
-          this._isLoggedIn.next(false); // Asegurarse de que el estado sea falso si falla el login
-          return of(error); // Devolver un observable de error para que el componente lo maneje
+          this._isLoggedIn.next(false);
+          return throwError(() => error);
         })
       );
+  }
+
+  getPerfilUsuario(): Observable<UserProfile | null> {
+    if (!this.isLoggedIn()) {
+      return of(null);
+    }
+    const token = this.getToken();
+    return this.http.get<ApiUserProfile>(`${this.apiUrl}/perfil`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).pipe(
+      map(apiProfile => this._normalizeUserProfile(apiProfile)),
+      tap(normalizedProfile => this._currentUserProfile.next(normalizedProfile)),
+      catchError(error => {
+        console.error('Error al cargar el perfil del usuario:', error);
+        this.logout();
+        return of(null);
+      })
+    );
   }
 
   getToken(): string | null {
@@ -94,111 +201,81 @@ export class AutenticacionService {
   setToken(token: string): void {
     localStorage.setItem(this.tokenKey, token);
     this._isLoggedIn.next(true);
-    this.loadUserProfile(); // Cargar el perfil automáticamente cuando se establece un token
+    // No necesitamos cargar el perfil aquí, será cargado por el tap en login()
   }
 
   logout(): void {
     localStorage.removeItem(this.tokenKey);
     this._isLoggedIn.next(false);
-    this._currentUserProfile.next(null); // Limpiar el perfil del usuario
-    console.log('Usuario deslogueado - Estado limpiado');
+    this._currentUserProfile.next(null);
+    this._initializationPromise = null; // Resetear para permitir reinicialización
   }
 
   isLoggedIn(): boolean {
     return this._isLoggedIn.getValue();
   }
 
-  //verificar si hay un token valido (no solo si existe, sino si es valido)
   private checkTokenValidity(): boolean {
     const token = this.getToken();
-    if (!token) {
-      return false;
-    }
+    if (!token) return false;
     try {
-      const decodedToken: DecodeJwtPayload = jwtDecode(token);
-      const currentTime = Date.now() / 1000; // Convertir a segundos
-      // Verificar si el token no ha expirado
-      if (decodedToken.exp && decodedToken.exp < currentTime) {
-        console.warn('Token expirado');
-        this.logout(); // Si el token ha expirado, lo eliminamos y actualizamos el estado
-        return false;
-      }
-      return true; // Si el token es válido, retornamos true
+      const decoded: DecodeJwtPayload = jwtDecode(token);
+      return Date.now() < decoded.exp * 1000;
     } catch (error) {
-      console.error('Error al decodificar el token:', error);
-      this.logout(); // Si hay un error al decodificar, eliminamos el token y actualizamos el estado
       return false;
     }
   }
 
-  // Cargar el perfil del usuario desde el backend
-  private loadUserProfile(): void {
-    console.log('Cargando perfil de usuario...');
-    this.getPerfilUsuario().subscribe({
-      next: (profile: UserProfile | null) => {
-        console.log('Perfil cargado:', profile);
-        this._currentUserProfile.next(profile);
-      },
-      error: (error) => {
-        console.error('Error al cargar el perfil del usuario:', error);
-        // No forzar logout aquí para evitar perder la sesión por errores transitorios.
-        // Mantener el token y estado de login, pero limpiar el perfil.
-        this._currentUserProfile.next(null);
-      },
-    });
-  }
-
-  getPerfilUsuario(): Observable<UserProfile | null> {
+  getUserRole(): 'paciente' | 'doctor' | 'admin' | null {
     const token = this.getToken();
-    if (!token) {
-      console.warn(
-        'No hay token disponible para obtener el perfil del usuario'
-      );
-      return of(null);
+    if (!token) return null;
+    try {
+      const decoded: DecodeJwtPayload = jwtDecode(token);
+      return decoded.usuario.tipo;
+    } catch (error) {
+      return null;
     }
-    return this.http
-      .get<UserProfile>(`${this.apiUrl}/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .pipe(
-        catchError((error) => {
-          console.error('API /auth/me error', error);
-          return of(null); // Devolver null en caso de error
-        })
-      );
   }
 
-  //Metodo para verificar si el usuario tiene un rol específico
-  hasRole(requiredRole: string): boolean {
-    const profile = this._currentUserProfile.getValue();
-    // del backend viene "_rol" por eso usamos "profile?._rol"
-    if (!profile || !profile._rol || !requiredRole) return false
-    return String(profile._rol).toLowerCase() === String(requiredRole).toLowerCase()
-  }
-
-  // Si necesitas chequear múltiples roles (ej: 'admin' O 'medico')
-  hasAnyRole(requiredRoles: string[]): boolean {
-    const profile = this._currentUserProfile.getValue();
-    if (!profile || !profile._rol) {
-      return false;
+  getUserId(): string | null {
+    const token = this.getToken();
+    if (!token) return null;
+    try {
+      const decoded: DecodeJwtPayload = jwtDecode(token);
+      return decoded.usuario.id;
+    } catch (error) {
+      return null;
     }
-    const userRole = String(profile._rol).toLowerCase()
-    return requiredRoles.map(r => String(r).toLowerCase()).includes(userRole)
   }
 
-  resetPassword(dni: string, newPassword: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/reset-password`, {
-      dni,
-      newPassword,
-    });
-  }
+  private _normalizeUserProfile(apiProfile: ApiUserProfile): UserProfile {
+    const baseProfile = {
+      usuario_id: String(apiProfile.id),
+      dni: apiProfile.dni,
+      nombre: apiProfile.nombre,
+      apellido: apiProfile.apellido,
+      email: apiProfile.email,
+      tipo: apiProfile.tipo,
+    };
 
-  // Método público para forzar la recarga del perfil (útil después de problemas de estado)
-  public forceReloadUserProfile(): void {
-    if (this.isLoggedIn()) {
-      this.loadUserProfile();
-    } else {
-      this._currentUserProfile.next(null);
+    if (apiProfile.tipo === 'paciente' && apiProfile.Paciente) {
+      return {
+        ...baseProfile,
+        id: String(apiProfile.Paciente.id),
+        telefono: apiProfile.Paciente.telefono,
+        fechaNacimiento: apiProfile.Paciente.fechaNacimiento,
+      };
     }
+
+    if (apiProfile.tipo === 'doctor' && apiProfile.Doctor) {
+      return {
+        ...baseProfile,
+        id: String(apiProfile.Doctor.id),
+        telefono: apiProfile.Doctor.telefono,
+        matricula: apiProfile.Doctor.matricula,
+      };
+    }
+
+    return { ...baseProfile, id: String(apiProfile.id) };
   }
 }

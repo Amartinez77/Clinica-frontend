@@ -153,18 +153,18 @@ export class TurnoReservaComponent implements OnInit {
     this.turnoService
       .crearTurno(
         this.idPaciente,
-        this.doctor._id,
+        this.doctor.id,
         fechaString,
         this.selectedHour,
         this.observaciones
       )
       .subscribe({
-        next: (response) => {
+        next: (response: any) => {
           console.log('Turno creado:', response);
           this.mercadoPagoService
-            .crearPreferencia(this.doctor._id, response._id)
+            .crearPreferencia(this.doctor.id, response.id)
             .subscribe({
-              next: (res) => {
+              next: (res: any) => {
                 console.log('Preferencia creada:', res);
                 window.location.href = res.init_point; // Redirige al Checkout Pro
               },
@@ -193,18 +193,18 @@ export class TurnoReservaComponent implements OnInit {
     this.turnoService
       .crearTurno(
         this.idPaciente,
-        this.doctor._id,
+        this.doctor.id,
         fechaString,
         this.selectedHour,
         this.observaciones
       )
       .subscribe({
-        next: (response) => {
+        next: (response: any) => {
           console.log('Turno creado:', response);
           const pago: Pago = {
             monto: this.precioConsulta,
             metodoPago: 'transferencia',
-            turno: response._id, // Asumiendo que el turno creado tiene un ID
+            turno: response.id, // Asumiendo que el turno creado tiene un ID
           };
           this.pagoService.crearNuevoPago(pago).subscribe({
             next: (res) => {

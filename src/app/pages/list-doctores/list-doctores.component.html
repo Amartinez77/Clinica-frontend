@@ -16,7 +16,7 @@
                 (change)="onFiltrarEspecialidad()">
                 <option value="">Todas las especialidades</option>
                 <ng-container *ngFor="let esp of especialidades">
-                    <option [value]="esp._id">{{ esp.nombre }}</option>
+                    <option [value]="esp.id">{{ esp.nombre }}</option>
                 </ng-container>
             </select>
         </div>
@@ -31,7 +31,7 @@
                 </div>
             </div>
         </div>
-        <ng-container *ngFor="let doctor of doctoresFiltrados()">
+        <ng-container *ngFor="let doctor of displayedDoctores">
             <div class="col-12 col-sm-6 col-lg-4">
                 <div class="card h-100 shadow-sm border-0">
                     <div class="card-body d-flex flex-column">
@@ -51,7 +51,7 @@
                                 doctor.telefono }}</li>
                         </ul>
                         <button *ngIf="mostrarBotonTurno" class="btn btn-primary w-100 mt-auto"
-                            (click)="onClickReservarTurno(doctor._id)"><i class="bi bi-calendar-plus me-2"></i>Solicitar
+                            (click)="onClickReservarTurno(doctor.id)"><i class="bi bi-calendar-plus me-2"></i>Solicitar
                             turno</button>
 
                     </div>
@@ -64,5 +64,13 @@
                 <div class="alert alert-info text-center">{{ mensajeInfo || 'No se encontraron doctores.' }}</div>
             </div>
         </ng-container>
+        <!-- Botón "Ver más" -->
+        <div class="col-12" *ngIf="tieneMasDoctores() && !cargando">
+            <div class="d-flex justify-content-center">
+                <button class="btn btn-outline-primary btn-lg" (click)="verMasDoctores()">
+                    <i class="bi bi-arrow-down me-2"></i>Ver más doctores ({{ displayedDoctores.length }}/{{ obtenerTotalDoctores() }})
+                </button>
+            </div>
+        </div>
     </div>
 </div>

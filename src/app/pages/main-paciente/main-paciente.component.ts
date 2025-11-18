@@ -1,5 +1,3 @@
-
-
 import { CommonModule } from '@angular/common';
 import { ListDoctoresComponent } from '../list-doctores/list-doctores.component';
 import {
@@ -9,49 +7,14 @@ import {
   ViewChild,
   ElementRef,
 } from '@angular/core';
-import { PacienteService } from '../../services/paciente.service';
+import { PacienteService, Paciente } from '../../services/paciente.service';
 import { ActivatedRoute } from '@angular/router';
-import { TurnoService } from '../../services/turno.service';
+import { TurnoService, Turno, Archivo } from '../../services/turno.service';
 import { ToastService } from '../../services/toast.service';
-import { Especialidad } from '../list-doctores/list-doctores.component';
 import { ArchivosService, ArchivoSubida } from '../../services/archivos.service';
 import {ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-export interface Paciente {
-  _id: string;
-  nombre: string;
-  apellido: string;
-  dni: string;
-  telefono: string;
-  email: string;
-  fechaNacimiento: string;
-  uid_firebase?: string;
-}
-export interface Doctor {
-  _id: string;
-  nombre: string;
-  apellido: string;
-  especialidad: Especialidad;
-  telefono: string;
-  email: string;
-}
-export interface Archivo {
-  _id: string;
-  nombre: string;
-  url: string;
-  tipo: string; // 'comprobante-pago' | 'archivo-medico'
-  fechaSubida: string;
-}
-export interface Turno {
-  _id: string;
-  fecha: string;
-  hora: string;
-  paciente: Paciente;
-  doctor: Doctor;
-  estado: string;
-  observaciones: string;
-  archivos: Archivo[];
-}
+
 @Component({
   selector: 'app-main-paciente',
   imports: [CommonModule, ListDoctoresComponent, ReactiveFormsModule],
@@ -73,15 +36,7 @@ export class MainPacienteComponent implements OnInit {
   archivosService = inject(ArchivosService);
   private router = inject(Router);
   mostrarBotonTurno = true; // Controla la visibilidad del botón de solicitar turno
-  paciente: Paciente = {
-    _id: '',
-    nombre: '',
-    apellido: '',
-    email: '',
-    dni: '',
-    fechaNacimiento: '',
-    telefono: '',
-  };
+  paciente!: Paciente;
   turnos: Turno[] = [];
   estadoFiltro: string = 'todos';
   estadosTurno: { value: string; label: string; icon: string }[] = [
@@ -121,7 +76,7 @@ export class MainPacienteComponent implements OnInit {
   ngOnInit() {
     this.pacienteId = this.route.snapshot.paramMap.get('idPaciente') || '';
     this.pacienteService.getPacienteById(this.pacienteId).subscribe(
-      (data: any) => {
+      (data: Paciente) => {
         this.paciente = data;
         this.inicializarFormEditarPerfil();
       },
@@ -134,7 +89,7 @@ export class MainPacienteComponent implements OnInit {
   
   inicializarFormEditarPerfil() {
     this.formEditarPerfil = this.formBuilder.group({
-      email: [{ value: this.paciente.email, disabled: !!this.paciente.uid_firebase }, [Validators.required, Validators.email]],
+      email: [this.paciente.email, [Validators.required, Validators.email]],
       telefono: [this.paciente.telefono, [Validators.required, Validators.pattern(/^\d{8,20}$/)]],
     });
   }

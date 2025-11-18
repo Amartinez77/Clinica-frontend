@@ -32,13 +32,13 @@ export const roleGuard: CanActivateFn = (route, state) => {
       }
 
       // Verificar si el perfil tiene el rol requerido (comparación insensible a mayúsculas/minúsculas)
-      const userRole = String(profile._rol || '').toLowerCase()
+      const userRole = String(profile.tipo || '').toLowerCase()
       const reqRole = String(expectedRole || '').toLowerCase()
       if (userRole === reqRole) {
         return true; // El usuario tiene el rol requerido
       } else {
         console.warn(
-          `RoleGuard: Acceso denegado. Rol '${profile._rol}' no coincide con el rol requerido '${expectedRole}'.`
+          `RoleGuard: Acceso denegado. Rol '${profile.tipo}' no coincide con el rol requerido '${expectedRole}'.`
         );
         return router.parseUrl('/acceso-denegado'); // Al acceso denegado si no tiene el rol
       }

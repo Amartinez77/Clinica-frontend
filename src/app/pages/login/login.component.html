@@ -1,115 +1,112 @@
-<div class="d-flex justify-content-center align-items-center min-vh-100 bg-primary-subtle">
-  <div class="card shadow-lg border-0 rounded-4" style="max-width: 400px; width: 100%">
-    <div class="card-body p-5">
-      <!-- Logo o título -->
-      <div class="text-center mb-4">
-        <h3 class="fw-bold text-primary mb-2">Iniciar Sesión</h3>
-        <p class="text-muted">Accede a tu cuenta del consultorio</p>
+<div class="d-flex align-items-center justify-content-center" style="min-height: 100vh; background-color: #f8f9fa;">
+  <div class="card shadow-lg border-0" style="width: 100%; max-width: 450px; border-radius: 15px;">
+    <!-- Card Header -->
+    <div class="card-header text-center bg-white border-0" style="border-radius: 15px 15px 0 0; padding: 2rem 1.5rem 1rem;">
+      <h2 class="mb-2 fw-bold text-primary">
+        <i class="bi bi-lock-fill me-2"></i>Iniciar Sesión
+      </h2>
+      <p class="text-muted mb-0 small">
+        Accede a tu cuenta para gestionar tu salud
+      </p>
+    </div>
+
+    <!-- Card Body -->
+    <div class="card-body p-4">
+      <!-- Selector de Tipo de Usuario -->
+      <div class="d-flex gap-2 mb-4 justify-content-center">
+        <button
+          *ngFor="let tipo of userTypes"
+          type="button"
+          (click)="selectUserType(tipo.value)"
+          [ngClass]="{
+            'btn btn-primary': loginForm.get('tipo')?.value === tipo.value,
+            'btn btn-outline-secondary': loginForm.get('tipo')?.value !== tipo.value
+          }"
+          class="btn btn-sm flex-grow-1"
+        >
+          {{ tipo.label }}
+        </button>
       </div>
 
-      <!-- Formulario de login -->
       <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <!-- Campo DNI -->
+        <!-- DNI -->
         <div class="mb-3">
-          <label for="dni" class="form-label fw-medium text-dark">DNI</label>
-          <div class="input-group">
-            <span class="input-group-text bg-light border-end-0">
-              <i class="bi bi-person-vcard text-secondary"></i>
-            </span>
-            <input type="text" class="form-control border-start-0 ps-2" id="dni" formControlName="dni"
-              placeholder="Ingrese su DNI" maxlength="8" />
-          </div>
-          <div class="form-text">Ingrese su número de documento sin puntos</div>
-          <!-- Mensaje de validación -->
-          <div *ngIf="dni?.invalid && dni?.touched" class="text-danger small mt-1">
-            <div *ngIf="dni?.errors?.['required']">
-              <span>El DNI es requerido</span>
-            </div>
-            <div *ngIf="dni?.errors?.['pattern']">
-              <span>El DNI debe tener entre 7 y 8 dígitos</span>
-            </div>
+          <label for="dni" class="form-label fw-bold">
+            <i class="bi bi-card-text me-1"></i>DNI
+          </label>
+          <input
+            id="dni"
+            type="text"
+            formControlName="dni"
+            class="form-control"
+            [class.is-invalid]="loginForm.get('dni')?.touched && loginForm.get('dni')?.errors"
+            placeholder="Tu número de DNI"
+          />
+          <div class="invalid-feedback d-block" *ngIf="loginForm.get('dni')?.touched && loginForm.get('dni')?.errors">
+            <p *ngIf="loginForm.get('dni')?.errors?.['required']" class="mb-0">El DNI es obligatorio.</p>
+            <p *ngIf="loginForm.get('dni')?.errors?.['pattern']" class="mb-0">El DNI debe ser numérico de 7 u 8 dígitos.</p>
           </div>
         </div>
 
-        <!-- Campo Password -->
-        <div class="mb-4">
-          <label for="password" class="form-label fw-medium text-dark">Contraseña</label>
+        <!-- Contraseña -->
+        <div class="mb-3">
+          <label for="password" class="form-label fw-bold">
+            <i class="bi bi-key me-1"></i>Contraseña
+          </label>
           <div class="input-group">
-            <span class="input-group-text bg-light border-end-0">
-              <i class="bi bi-lock text-secondary"></i>
-            </span>
-            <input [type]="showPassword ? 'text' : 'password'" class="form-control border-start-0 ps-2" id="password"
-              formControlName="password" placeholder="Ingrese su contraseña" />
-            <button class="btn btn-outline-secondary border-start-0" type="button" (click)="togglePassword()">
-              <i class="bi" [class.bi-eye]="!showPassword" [class.bi-eye-slash]="showPassword"></i>
+            <input
+              id="password"
+              [type]="showPassword ? 'text' : 'password'"
+              formControlName="password"
+              class="form-control"
+              [class.is-invalid]="loginForm.get('password')?.touched && loginForm.get('password')?.errors"
+              placeholder="Tu contraseña"
+            />
+            <button 
+              type="button" 
+              (click)="showPassword = !showPassword" 
+              class="btn btn-outline-secondary"
+            >
+              <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
             </button>
           </div>
-          <!-- Mensaje de validación -->
-          <div *ngIf="password?.invalid && password?.touched" class="text-danger small mt-1">
-            <div *ngIf="password?.errors?.['required']">
-              <span>La contraseña es requerida</span>
-            </div>
-            <div *ngIf="password?.errors?.['minlength']">
-              <span>La contraseña debe tener al menos 6 caracteres</span>
-            </div>
+          <div class="invalid-feedback d-block" *ngIf="loginForm.get('password')?.touched && loginForm.get('password')?.errors">
+            <p *ngIf="loginForm.get('password')?.errors?.['required']" class="mb-0">La contraseña es obligatoria.</p>
+            <p *ngIf="loginForm.get('password')?.errors?.['minlength']" class="mb-0">La contraseña debe tener al menos 6 caracteres.</p>
           </div>
         </div>
 
-        <!-- Botón de login -->
-        <div class="d-grid mb-4">
-          <button type="submit" class="btn btn-primary btn-lg rounded-3" [disabled]="loginForm.invalid || isLoading">
-            <ng-container *ngIf="isLoading">
-              <span class="spinner-border spinner-border-sm me-2" role="status">
-                <span class="visually-hidden">Loading...</span>
-              </span>
-            </ng-container>
-            <ng-container *ngIf="!isLoading">
-              <i class="bi bi-box-arrow-in-right me-2"></i>
-            </ng-container>
-            {{ isLoading ? "Iniciando..." : "Iniciar Sesión" }}
-          </button>
-        </div>
-
-        <!-- Enlace para crear cuenta -->
-        <div class="text-center mb-4">
-          <p class="text-muted mb-3">¿No tienes una cuenta?</p>
-          <button type="button" class="btn btn-outline-primary rounded-3" (click)="onCreateAccount()">
-            <i class="bi bi-person-plus me-2"></i>
-            Crear Cuenta Nueva
-          </button>
-        </div>
-
-        <!-- Separador Bootstrap nativo -->
-        <div class="text-center my-4">
-          <div class="row align-items-center">
-            <div class="col">
-              <hr class="text-muted" />
-            </div>
-            <div class="col-auto">
-              <span class="text-muted small">o</span>
-            </div>
-            <div class="col">
-              <hr class="text-muted" />
-            </div>
-          </div>
-        </div>
-
-        <!-- Botón de Google con Bootstrap -->
-        <div class="text-center mb-4">
-          <button type="button" class="btn btn-outline-secondary btn-lg w-100 rounded-3" (click)="onGoogleLogin()">
-            <i class="bi bi-google me-2 text-danger"></i>
-            <span class="text-dark">Continuar con Google</span>
-          </button>
-        </div>
-
-        <!-- Enlaces adicionales -->
-        <div class="text-center mt-4">
-          <a href="#" class="text-decoration-none text-muted small"
-            (click)="onForgotPassword(); $event.preventDefault()">
-            ¿Olvidaste tu contraseña?
-          </a>
-        </div>
+        <!-- Botón de envío -->
+        <button
+          type="submit"
+          [disabled]="loginForm.invalid || isLoading"
+          class="btn btn-primary w-100 fw-bold py-2 mb-3"
+        >
+          <span *ngIf="isLoading" class="me-2">
+            <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+          </span>
+          {{ isLoading ? 'Iniciando...' : 'Iniciar Sesión' }}
+        </button>
       </form>
+
+      <!-- Olvidé contraseña -->
+      <div class="text-center mb-3">
+        <a routerLink="/resetear-password" class="text-decoration-none">
+          <small class="text-primary fw-bold">¿Olvidaste tu contraseña?</small>
+        </a>
+      </div>
+
+      <!-- Divider -->
+      <hr class="my-3" />
+
+      <!-- Registro -->
+      <div class="text-center">
+        <small class="text-muted">¿No tienes una cuenta?</small>
+        <br />
+        <a href="/login/registro-paciente" class="btn btn-outline-primary btn-sm mt-2 w-100">
+          <i class="bi bi-person-plus me-1"></i>Regístrate aquí
+        </a>
+      </div>
     </div>
   </div>
 </div>

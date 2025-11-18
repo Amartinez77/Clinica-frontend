@@ -95,11 +95,11 @@
             <label class="form-label fw-bold text-dark">
               <i class="fas fa-stethoscope me-1 text-primary"></i>Especialidad
             </label>
-            <select class="form-select" name="especialidad" [(ngModel)]="doctor.especialidad" required
+            <select class="form-select" name="especialidadId" [(ngModel)]="doctor.especialidadId" required
               #especialidad="ngModel">
               <option value="">Seleccione una especialidad</option>
-              <option *ngFor="let esp of especialidades" [value]="esp.id || esp._id">
-                {{ esp.nombre }} - {{ esp.descripcion }}
+              <option *ngFor="let esp of especialidades" [value]="esp._id">
+                {{ esp.nombre }}
               </option>
             </select>
             <div class="text-danger small mt-1" *ngIf="

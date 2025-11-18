@@ -414,8 +414,8 @@
                 <td>{{ doctor && doctor.especialidad ? doctor.especialidad.nombre : '' }}</td>
                 <td>{{ doctor ? doctor.telefono : '' }}</td>
                 <td>
-                  <span *ngIf="doctor && doctor.activo === true" class="badge bg-success">Activo</span>
-                  <span *ngIf="doctor && doctor.activo !== true" class="badge bg-secondary">Inactivo</span>
+                  <span *ngIf="doctor && doctor.estado === 'activo'" class="badge bg-success">Activo</span>
+                  <span *ngIf="doctor && doctor.estado !== 'activo'" class="badge bg-secondary">Inactivo</span>
                 </td>
                 <td>
                   <button class="btn btn-sm btn-outline-danger" (click)="openEliminarDoctorModal(doctor)">
@@ -439,8 +439,8 @@
                 <h6 class="card-title fw-bold text-primary mb-0">
                   <i class="bi bi-person-badge"></i> {{ doctor ? (doctor.nombre + ' ' + doctor.apellido) : '' }}
                 </h6>
-                <span *ngIf="doctor && doctor.activo === true" class="badge bg-success">Activo</span>
-                <span *ngIf="doctor && doctor.activo !== true" class="badge bg-secondary">Inactivo</span>
+                <span *ngIf="doctor && doctor.estado === 'activo'" class="badge bg-success">Activo</span>
+                <span *ngIf="doctor && doctor.estado !== 'activo'" class="badge bg-secondary">Inactivo</span>
               </div>
               <div class="row text-sm mb-3">
                 <div class="col-6">
@@ -472,7 +472,7 @@
             <div class="modal-header">
               <h5 class="modal-title text-danger">
                 <i class="bi bi-exclamation-triangle-fill"></i>
-                Confirmar eliminación
+                Confirmar desactivación
               </h5>
               <button type="button" class="btn-close" aria-label="Close"
                 (click)="showEliminarDoctorModal = false"></button>
@@ -480,8 +480,8 @@
             <div class="modal-body">
               <ng-container *ngIf="doctorAEliminar">
                 <p>
-                  ¿Estás seguro que deseas eliminar al doctor
-                  <b>{{ doctorAEliminar.nombre }} {{ doctorAEliminar.apellido }}</b>?
+                  ¿Estás seguro que deseas desactivar al doctor
+                  <b>{{ doctorAEliminar.nombre }} {{ doctorAEliminar.apellido }}</b>? Esta acción cambiará su estado a "Inactivo".
                 </p>
               </ng-container>
             </div>
@@ -490,7 +490,7 @@
                 Cancelar
               </button>
               <button type="button" class="btn btn-danger" (click)="confirmarEliminarDoctor()">
-                Eliminar
+                Desactivar
               </button>
             </div>
           </div>

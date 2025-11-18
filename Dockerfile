@@ -12,7 +12,7 @@ RUN npm ci --silent
 
 # Copiar el resto del proyecto y construir
 COPY . .
-RUN npm run build --configuration=production
+RUN npm run build --configuration=development
 
 # Stage 2: servidor Nginx para servir los archivos estáticos
 FROM nginx:stable-alpine AS production

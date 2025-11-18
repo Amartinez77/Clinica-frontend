@@ -11,6 +11,10 @@ interface EspecialidadConDoctores {
   nombre: string;
   descripcion?: string; // Opcional, para futuras implementaciones
   doctores: Doctor[];
+  expandida: boolean; // Control de expansión
+  mostrandoDoctores: Doctor[]; // Doctores mostrados en pantalla
+  paginaActual: number; // Página actual
+  itemsPorPagina: number; // Items por página
 }
 
 @Component({
@@ -80,7 +84,11 @@ export class EspecialidadesComponent implements OnInit {
           _id: especialidadId,
           nombre: especialidadNombre,
           descripcion: especialidadInfo?.descripcion || 'Especialidad médica profesional',
-          doctores: []
+          doctores: [],
+          expandida: false,
+          mostrandoDoctores: [],
+          paginaActual: 0,
+          itemsPorPagina: 8
         });
       }
 
@@ -100,5 +108,37 @@ export class EspecialidadesComponent implements OnInit {
   // Método para obtener el nombre completo del doctor
   getNombreCompleto(doctor: Doctor): string {
     return `Dr. ${doctor.nombre} ${doctor.apellido}`;
+  }
+
+  // Método para expandir/contraer una especialidad
+  toggleEspecialidad(especialidad: EspecialidadConDoctores): void {
+    especialidad.expandida = !especialidad.expandida;
+    if (especialidad.expandida) {
+      this.actualizarDoctoresVisibles(especialidad);
+    }
+  }
+
+  // Método para actualizar los doctores visibles en la paginación
+  actualizarDoctoresVisibles(especialidad: EspecialidadConDoctores): void {
+    const inicio = especialidad.paginaActual * especialidad.itemsPorPagina;
+    const fin = inicio + especialidad.itemsPorPagina;
+    especialidad.mostrandoDoctores = especialidad.doctores.slice(inicio, fin);
+  }
+
+  // Método para cargar más doctores en una especialidad
+  verMasDoctores(especialidad: EspecialidadConDoctores): void {
+    especialidad.paginaActual++;
+    this.actualizarDoctoresVisibles(especialidad);
+  }
+
+  // Método para verificar si hay más doctores por cargar
+  tieneMasDoctores(especialidad: EspecialidadConDoctores): boolean {
+    const totalMostrados = (especialidad.paginaActual + 1) * especialidad.itemsPorPagina;
+    return totalMostrados < especialidad.doctores.length;
+  }
+
+  // Método para obtener el total de doctores mostrados
+  totalMostrados(especialidad: EspecialidadConDoctores): number {
+    return Math.min((especialidad.paginaActual + 1) * especialidad.itemsPorPagina, especialidad.doctores.length);
   }
 }
