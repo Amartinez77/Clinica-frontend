@@ -32,6 +32,12 @@ export class MainAdminComponent implements OnInit {
   doctorAEliminar: Doctor | null = null;
   showConfirmPagoModal = false;
 
+  // Paginación para turnos a confirmar
+  turnosPaginaActual: Turno[] = [];
+  paginaActual = 1;
+  turnosPorPagina = 5;
+  totalPaginas = 0;
+
   turnoService = inject(TurnoService);
   pacienteService = inject(PacienteService);
   doctorService = inject(DoctorService);
@@ -54,6 +60,8 @@ export class MainAdminComponent implements OnInit {
     });
     this.turnoService.getTurnosPendientes().subscribe((turnos: Turno[]) => {
       this.turnos = turnos;
+      this.calcularTotalPaginas();
+      this.irAPagina(1);
     });
     this.pacienteService
       .getAllPacientes(this.token)
@@ -63,6 +71,32 @@ export class MainAdminComponent implements OnInit {
     this.doctorService.getDoctores().subscribe((doctores: Doctor[]) => {
       this.doctores = doctores;
     });
+  }
+
+  // Métodos para paginación
+  calcularTotalPaginas() {
+    this.totalPaginas = Math.ceil(this.turnos.length / this.turnosPorPagina);
+    if (this.totalPaginas === 0) this.totalPaginas = 1;
+  }
+
+  irAPagina(pagina: number) {
+    if (pagina < 1 || pagina > this.totalPaginas) return;
+    this.paginaActual = pagina;
+    const inicio = (pagina - 1) * this.turnosPorPagina;
+    const fin = inicio + this.turnosPorPagina;
+    this.turnosPaginaActual = this.turnos.slice(inicio, fin);
+  }
+
+  irAPaginaAnterior() {
+    if (this.paginaActual > 1) {
+      this.irAPagina(this.paginaActual - 1);
+    }
+  }
+
+  irAPaginaSiguiente() {
+    if (this.paginaActual < this.totalPaginas) {
+      this.irAPagina(this.paginaActual + 1);
+    }
   }
 
   onClickEstadisticas() {
@@ -119,6 +153,13 @@ export class MainAdminComponent implements OnInit {
       // Actualizar la lista de turnos después de confirmar
       this.turnoService.getTurnosPendientes().subscribe((turnos: Turno[]) => {
         this.turnos = turnos;
+        this.calcularTotalPaginas();
+        // Mantener en la misma página o ir a la anterior si estamos vacíos
+        if (this.paginaActual > this.totalPaginas) {
+          this.irAPagina(this.totalPaginas);
+        } else {
+          this.irAPagina(this.paginaActual);
+        }
         this.filtrarTurnos(); // Refiltrar para actualizar la vista
         this.showConfirmPagoModal = true;
       });

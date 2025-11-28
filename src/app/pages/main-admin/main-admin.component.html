@@ -206,12 +206,12 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngIf="!turnos || turnos.length === 0">
+              <tr *ngIf="!turnosPaginaActual || turnosPaginaActual.length === 0">
                 <td colspan="6" class="text-center text-muted py-4">
                   <i class="bi bi-info-circle"></i> No hay turnos pendientes de pago.
                 </td>
               </tr>
-              <tr *ngFor="let turno of turnos">
+              <tr *ngFor="let turno of turnosPaginaActual">
                 <td>{{ turno.paciente ? (turno.paciente.nombre + ' ' + turno.paciente.apellido) : '' }}</td>
                 <td>{{ turno.doctor ? (turno.doctor.nombre + ' ' + turno.doctor.apellido) : '' }}</td>
                 <td>{{ turno.fecha }}</td>
@@ -245,15 +245,33 @@
           </table>
         </div>
 
+        <!-- Controles de paginación (Desktop) -->
+        <div class="d-none d-md-flex justify-content-between align-items-center mt-3 p-3 bg-light rounded">
+          <div class="small text-muted">
+            Mostrando <strong>{{ turnosPaginaActual.length }}</strong> de <strong>{{ turnos.length }}</strong> turnos
+            | Página <strong>{{ paginaActual }}</strong> de <strong>{{ totalPaginas }}</strong>
+          </div>
+          <div class="btn-group" role="group">
+            <button type="button" class="btn btn-outline-primary" [disabled]="paginaActual === 1"
+              (click)="irAPaginaAnterior()">
+              <i class="bi bi-chevron-left"></i> Anterior
+            </button>
+            <button type="button" class="btn btn-outline-primary" [disabled]="paginaActual === totalPaginas"
+              (click)="irAPaginaSiguiente()">
+              Siguiente <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+
         <!-- Mobile Card View -->
         <div class="d-md-none">
-          <div *ngIf="!turnos || turnos.length === 0" class="card">
+          <div *ngIf="!turnosPaginaActual || turnosPaginaActual.length === 0" class="card">
             <div class="card-body text-center text-muted py-4">
               <i class="bi bi-info-circle fs-1"></i>
               <p class="mt-2 mb-0">No hay turnos pendientes de pago.</p>
             </div>
           </div>
-          <div *ngFor="let turno of turnos" class="card mb-3 shadow-sm">
+          <div *ngFor="let turno of turnosPaginaActual" class="card mb-3 shadow-sm">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <h6 class="card-title fw-bold mb-0">{{ turno.paciente ? (turno.paciente.nombre + ' ' +
@@ -298,6 +316,26 @@
                   <i class="bi bi-check-circle"></i> Confirmar Pago
                 </button>
               </div>
+            </div>
+          </div>
+
+          <!-- Controles de paginación (Mobile) -->
+          <div class="d-md-none mt-3">
+            <div class="alert alert-info mb-3" role="alert">
+              <small>
+                Página <strong>{{ paginaActual }}</strong> de <strong>{{ totalPaginas }}</strong>
+                | Mostrando <strong>{{ turnosPaginaActual.length }}</strong> de <strong>{{ turnos.length }}</strong>
+              </small>
+            </div>
+            <div class="d-grid gap-2">
+              <button type="button" class="btn btn-outline-primary" [disabled]="paginaActual === 1"
+                (click)="irAPaginaAnterior()">
+                <i class="bi bi-chevron-left"></i> Anterior
+              </button>
+              <button type="button" class="btn btn-outline-primary" [disabled]="paginaActual === totalPaginas"
+                (click)="irAPaginaSiguiente()">
+                Siguiente <i class="bi bi-chevron-right"></i>
+              </button>
             </div>
           </div>
         </div>
