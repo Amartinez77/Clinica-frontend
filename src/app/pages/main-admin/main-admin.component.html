@@ -34,7 +34,6 @@
       </button>
     </nav>
   </div>
-
   <div class="row">
     <!-- Desktop Sidebar -->
     <aside class="col-md-3 col-lg-2 px-0 bg-light shadow-sm min-vh-100 d-none d-md-flex flex-column admin-aside">
@@ -69,7 +68,6 @@
       </nav>
       <div class="mt-auto p-3 small text-muted">&copy; 2025 Admin</div>
     </aside>
-
     <!-- Main Content -->
     <main class="col-12 col-md-9 col-lg-10 px-3 py-4">
       <!-- Todos los Turnos -->
@@ -97,7 +95,6 @@
             </div>
           </form>
         </div>
-
         <!-- Desktop Table View -->
         <div class="table-responsive rounded shadow-sm d-none d-md-block">
           <table class="table table-hover align-middle mb-0">
@@ -139,7 +136,6 @@
             </tbody>
           </table>
         </div>
-
         <!-- Mobile Card View -->
         <div class="d-md-none">
           <div *ngIf="!turnosFiltrados || turnosFiltrados.length === 0" class="card">
@@ -187,11 +183,10 @@
           </div>
         </div>
       </ng-container>
-      <!-- Fin Todos los Turnos -->
+
       <!-- Turnos a confirmar -->
       <ng-container *ngIf="section === 'turnos'">
         <h3 class="mb-4 fw-bold text-primary">Turnos a confirmar pago</h3>
-
         <!-- Desktop Table View -->
         <div class="table-responsive rounded shadow-sm d-none d-md-block">
           <table class="table table-hover align-middle mb-0">
@@ -206,12 +201,12 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngIf="!turnosPaginaActual || turnosPaginaActual.length === 0">
+              <tr *ngIf="!turnos || turnos.length === 0">
                 <td colspan="6" class="text-center text-muted py-4">
                   <i class="bi bi-info-circle"></i> No hay turnos pendientes de pago.
                 </td>
               </tr>
-              <tr *ngFor="let turno of turnosPaginaActual">
+              <tr *ngFor="let turno of turnos">
                 <td>{{ turno.paciente ? (turno.paciente.nombre + ' ' + turno.paciente.apellido) : '' }}</td>
                 <td>{{ turno.doctor ? (turno.doctor.nombre + ' ' + turno.doctor.apellido) : '' }}</td>
                 <td>{{ turno.fecha }}</td>
@@ -245,52 +240,28 @@
           </table>
         </div>
 
-        <!-- Controles de paginación (Desktop) -->
-        <div class="d-none d-md-flex justify-content-between align-items-center mt-3 p-3 bg-light rounded">
-          <div class="small text-muted">
-            Mostrando <strong>{{ turnosPaginaActual.length }}</strong> de <strong>{{ turnos.length }}</strong> turnos
-            | Página <strong>{{ paginaActual }}</strong> de <strong>{{ totalPaginas }}</strong>
-          </div>
-          <div class="btn-group" role="group">
-            <button type="button" class="btn btn-outline-primary" [disabled]="paginaActual === 1"
-              (click)="irAPaginaAnterior()">
-              <i class="bi bi-chevron-left"></i> Anterior
-            </button>
-            <button type="button" class="btn btn-outline-primary" [disabled]="paginaActual === totalPaginas"
-              (click)="irAPaginaSiguiente()">
-              Siguiente <i class="bi bi-chevron-right"></i>
-            </button>
-          </div>
-        </div>
-
         <!-- Mobile Card View -->
         <div class="d-md-none">
-          <div *ngIf="!turnosPaginaActual || turnosPaginaActual.length === 0" class="card">
+          <div *ngIf="!turnos || turnos.length === 0" class="card">
             <div class="card-body text-center text-muted py-4">
               <i class="bi bi-info-circle fs-1"></i>
               <p class="mt-2 mb-0">No hay turnos pendientes de pago.</p>
             </div>
           </div>
-          <div *ngFor="let turno of turnosPaginaActual" class="card mb-3 shadow-sm">
+          <div *ngFor="let turno of turnos" class="card mb-3 shadow-sm">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-3">
-                <h6 class="card-title fw-bold mb-0">{{ turno.paciente ? (turno.paciente.nombre + ' ' +
-                  turno.paciente.apellido) : '' }}</h6>
-                <ng-container *ngIf="turno.estado === 'pendiente'"><span
-                    class="badge bg-warning text-dark">Pendiente</span></ng-container>
-                <ng-container *ngIf="turno.estado === 'confirmado'"><span
-                    class="badge bg-success">Confirmado</span></ng-container>
-                <ng-container *ngIf="turno.estado === 'realizado'"><span
-                    class="badge bg-primary">Realizado</span></ng-container>
-                <ng-container *ngIf="turno.estado === 'cancelado'"><span
-                    class="badge bg-danger">Cancelado</span></ng-container>
+                <h6 class="card-title fw-bold mb-0">{{ turno.paciente ? (turno.paciente.nombre + ' ' + turno.paciente.apellido) : '' }}</h6>
+                <ng-container *ngIf="turno.estado === 'pendiente'"><span class="badge bg-warning text-dark">Pendiente</span></ng-container>
+                <ng-container *ngIf="turno.estado === 'confirmado'"><span class="badge bg-success">Confirmado</span></ng-container>
+                <ng-container *ngIf="turno.estado === 'realizado'"><span class="badge bg-primary">Realizado</span></ng-container>
+                <ng-container *ngIf="turno.estado === 'cancelado'"><span class="badge bg-danger">Cancelado</span></ng-container>
               </div>
               <div class="mb-3">
                 <div class="row text-sm">
                   <div class="col-6">
                     <small class="text-muted">Doctor:</small>
-                    <div class="fw-semibold">{{ turno.doctor ? (turno.doctor.nombre + ' ' + turno.doctor.apellido) : ''
-                      }}</div>
+                    <div class="fw-semibold">{{ turno.doctor ? (turno.doctor.nombre + ' ' + turno.doctor.apellido) : '' }}</div>
                   </div>
                   <div class="col-6">
                     <small class="text-muted">Fecha:</small>
@@ -318,42 +289,34 @@
               </div>
             </div>
           </div>
+        </div>
 
-          <!-- Controles de paginación (Mobile) -->
-          <div class="d-md-none mt-3">
-            <div class="alert alert-info mb-3" role="alert">
-              <small>
-                Página <strong>{{ paginaActual }}</strong> de <strong>{{ totalPaginas }}</strong>
-                | Mostrando <strong>{{ turnosPaginaActual.length }}</strong> de <strong>{{ turnos.length }}</strong>
-              </small>
-            </div>
-            <div class="d-grid gap-2">
-              <button type="button" class="btn btn-outline-primary" [disabled]="paginaActual === 1"
-                (click)="irAPaginaAnterior()">
-                <i class="bi bi-chevron-left"></i> Anterior
-              </button>
-              <button type="button" class="btn btn-outline-primary" [disabled]="paginaActual === totalPaginas"
-                (click)="irAPaginaSiguiente()">
-                Siguiente <i class="bi bi-chevron-right"></i>
-              </button>
-            </div>
+        <!-- Paginación Turnos -->
+        <div class="d-flex justify-content-between align-items-center mt-3 p-3 bg-light rounded">
+          <small class="text-muted">
+            Página {{ paginaActual }} de {{ getTotalPaginas() }} | Mostrando {{ (paginaActual - 1) * turnosPorPagina + 1 }}-{{ Math.min(paginaActual * turnosPorPagina, totalTurnos) }} de {{ totalTurnos }}
+          </small>
+          <div class="d-grid gap-2" style="width: 250px;">
+            <button type="button" class="btn btn-outline-primary" [disabled]="paginaActual === 1"
+              (click)="irAPaginaAnterior()">
+              <i class="bi bi-chevron-left"></i> Anterior
+            </button>
+            <button type="button" class="btn btn-outline-primary" [disabled]="paginaActual === getTotalPaginas()" (click)="irAPaginaSiguiente()">
+              Siguiente <i class="bi bi-chevron-right"></i>
+            </button>
           </div>
         </div>
       </ng-container>
 
       <!-- Modal de confirmación de pago -->
-      <div class="modal fade show" tabindex="-1" [ngStyle]="{
-          display: showConfirmPagoModal ? 'block' : 'none',
-          background: showConfirmPagoModal ? 'rgba(0,0,0,0.5)' : 'none'
-        }" *ngIf="showConfirmPagoModal">
+      <div class="modal fade show" tabindex="-1" [ngStyle]="{ display: showConfirmPagoModal ? 'block' : 'none', background: showConfirmPagoModal ? 'rgba(0,0,0,0.5)' : 'none' }" *ngIf="showConfirmPagoModal">
         <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
             <div class="modal-header">
               <h5 class="modal-title text-success">
                 <i class="bi bi-check-circle-fill"></i> Pago confirmado
               </h5>
-              <button type="button" class="btn-close" aria-label="Close"
-                (click)="showConfirmPagoModal = false"></button>
+              <button type="button" class="btn-close" aria-label="Close" (click)="showConfirmPagoModal = false"></button>
             </div>
             <div class="modal-body">
               <p>El pago del turno ha sido confirmado con éxito.</p>
@@ -370,7 +333,6 @@
       <!-- Pacientes -->
       <ng-container *ngIf="section === 'pacientes'">
         <h3 class="mb-4 fw-bold text-primary">Pacientes</h3>
-
         <!-- Desktop Table View -->
         <div class="table-responsive rounded shadow-sm d-none d-md-block">
           <table class="table table-hover align-middle mb-0">
@@ -392,7 +354,6 @@
             </tbody>
           </table>
         </div>
-
         <!-- Mobile Card View -->
         <div class="d-md-none">
           <div *ngIf="!pacientes || pacientes.length === 0" class="card">
@@ -423,12 +384,26 @@
             </div>
           </div>
         </div>
+        <!-- Paginación Pacientes -->
+        <div class="d-flex justify-content-between align-items-center mt-3 p-3 bg-light rounded">
+          <small class="text-muted">
+            Página {{ paginaPacientes }} de {{ getTotalPaginasPacientes() }} | Mostrando {{ (paginaPacientes - 1) * pacientesPorPagina + 1 }}-{{ Math.min(paginaPacientes * pacientesPorPagina, totalPacientes) }} de {{ totalPacientes }}
+          </small>
+          <div class="d-grid gap-2" style="width: 250px;">
+            <button type="button" class="btn btn-outline-primary" [disabled]="paginaPacientes === 1"
+              (click)="irAPaginaAnteriorPacientes()">
+              <i class="bi bi-chevron-left"></i> Anterior
+            </button>
+            <button type="button" class="btn btn-outline-primary" [disabled]="paginaPacientes === getTotalPaginasPacientes()" (click)="irAPaginaSiguientePacientes()">
+              Siguiente <i class="bi bi-chevron-right"></i>
+            </button>
+          </div>
+        </div>
       </ng-container>
 
       <!-- Doctores -->
       <ng-container *ngIf="section === 'doctores'">
         <h3 class="mb-4 fw-bold text-primary">Doctores</h3>
-
         <!-- Desktop Table View -->
         <div class="table-responsive rounded shadow-sm d-none d-md-block">
           <table class="table table-hover align-middle mb-0">
@@ -464,6 +439,7 @@
             </tbody>
           </table>
         </div>
+        <!-- Mobile Card View -->
         <div class="d-md-none">
           <div *ngIf="!doctores || doctores.length === 0" class="card">
             <div class="card-body text-center text-muted py-4">
@@ -496,6 +472,21 @@
                 </button>
               </div>
             </div>
+          </div>
+        </div>
+        <!-- Paginación Doctores -->
+        <div class="d-flex justify-content-between align-items-center mt-3 p-3 bg-light rounded">
+          <small class="text-muted">
+            Página {{ paginaDoctores }} de {{ getTotalPaginasDoctores() }} | Mostrando {{ (paginaDoctores - 1) * doctoresPorPagina + 1 }}-{{ Math.min(paginaDoctores * doctoresPorPagina, totalDoctores) }} de {{ totalDoctores }}
+          </small>
+          <div class="d-grid gap-2" style="width: 250px;">
+            <button type="button" class="btn btn-outline-primary" [disabled]="paginaDoctores === 1"
+              (click)="irAPaginaAnteriorDoctores()">
+              <i class="bi bi-chevron-left"></i> Anterior
+            </button>
+            <button type="button" class="btn btn-outline-primary" [disabled]="paginaDoctores === getTotalPaginasDoctores()" (click)="irAPaginaSiguienteDoctores()">
+              Siguiente <i class="bi bi-chevron-right"></i>
+            </button>
           </div>
         </div>
       </ng-container>

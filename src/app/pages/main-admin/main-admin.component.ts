@@ -32,71 +32,152 @@ export class MainAdminComponent implements OnInit {
   doctorAEliminar: Doctor | null = null;
   showConfirmPagoModal = false;
 
-  // Paginación para turnos a confirmar
-  turnosPaginaActual: Turno[] = [];
+  // Expose Math for use in template
+  Math = Math;
+
+  // Paginación
+  turnos: Turno[] = [];
   paginaActual = 1;
   turnosPorPagina = 5;
-  totalPaginas = 0;
+  totalTurnos = 0;
+  cargando = false;
+
+  // Paginación Pacientes
+  pacientes: Paciente[] = [];
+  paginaPacientes = 1;
+  pacientesPorPagina = 10;
+  totalPacientes = 0;
+  cargandoPacientes = false;
+
+  // Paginación Doctores
+  doctores: Doctor[] = [];
+  paginaDoctores = 1;
+  doctoresPorPagina = 10;
+  totalDoctores = 0;
+  cargandoDoctores = false;
+
+  token: string = '';
 
   turnoService = inject(TurnoService);
   pacienteService = inject(PacienteService);
   doctorService = inject(DoctorService);
   private router = inject(Router);
   private autenticacionService = inject(AutenticacionService);
-  private toastService = inject(ToastService)
-
-  turnos: Turno[] = [];
-  pacientes: Paciente[] = [];
-
-  doctores: Doctor[] = [];
-  showConfirmModal = false;
-
-  token: string = '';
+  private toastService = inject(ToastService);
 
   ngOnInit() {
     this.token = this.autenticacionService.getToken()!;
     this.turnoService.getAllTurnos().subscribe((turnos: Turno[]) => {
       this.turnosFiltrados = turnos;
     });
-    this.turnoService.getTurnosPendientes().subscribe((turnos: Turno[]) => {
-      this.turnos = turnos;
-      this.calcularTotalPaginas();
-      this.irAPagina(1);
-    });
-    this.pacienteService
-      .getAllPacientes(this.token)
-      .subscribe((pacientes: Paciente[]) => {
-        this.pacientes = pacientes;
-      });
-    this.doctorService.getDoctores().subscribe((doctores: Doctor[]) => {
-      this.doctores = doctores;
-    });
+    this.cargarTurnos(1);
+    this.cargarPacientes(1);
+    this.cargarDoctores(1);
   }
 
-  // Métodos para paginación
-  calcularTotalPaginas() {
-    this.totalPaginas = Math.ceil(this.turnos.length / this.turnosPorPagina);
-    if (this.totalPaginas === 0) this.totalPaginas = 1;
-  }
-
-  irAPagina(pagina: number) {
-    if (pagina < 1 || pagina > this.totalPaginas) return;
-    this.paginaActual = pagina;
-    const inicio = (pagina - 1) * this.turnosPorPagina;
-    const fin = inicio + this.turnosPorPagina;
-    this.turnosPaginaActual = this.turnos.slice(inicio, fin);
+  cargarTurnos(pagina: number) {
+    this.cargando = true;
+    this.turnoService.getTurnosPendientes(pagina, this.turnosPorPagina).subscribe({
+      next: (response: any) => {
+        // El backend retorna { data: [], total: number, pagina, limite, totalPaginas }
+        this.turnos = response.data || response;
+        this.totalTurnos = response.total || this.turnos.length;
+        this.paginaActual = pagina;
+        this.cargando = false;
+      },
+      error: (err) => {
+        console.error('Error al cargar turnos:', err);
+        this.turnos = [];
+        this.cargando = false;
+      }
+    });
   }
 
   irAPaginaAnterior() {
     if (this.paginaActual > 1) {
-      this.irAPagina(this.paginaActual - 1);
+      this.cargarTurnos(this.paginaActual - 1);
     }
   }
 
   irAPaginaSiguiente() {
-    if (this.paginaActual < this.totalPaginas) {
-      this.irAPagina(this.paginaActual + 1);
+    const totalPaginas = Math.ceil(this.totalTurnos / this.turnosPorPagina);
+    if (this.paginaActual < totalPaginas) {
+      this.cargarTurnos(this.paginaActual + 1);
     }
+  }
+
+  getTotalPaginas(): number {
+    return Math.ceil(this.totalTurnos / this.turnosPorPagina);
+  }
+
+  // Paginación Pacientes
+  cargarPacientes(pagina: number) {
+    this.cargandoPacientes = true;
+    this.pacienteService.getAllPacientes(this.token, pagina, this.pacientesPorPagina).subscribe({
+      next: (response: any) => {
+        this.pacientes = response.data || response;
+        this.totalPacientes = response.total || this.pacientes.length;
+        this.paginaPacientes = pagina;
+        this.cargandoPacientes = false;
+      },
+      error: (err: any) => {
+        console.error('Error al cargar pacientes:', err);
+        this.pacientes = [];
+        this.cargandoPacientes = false;
+      }
+    });
+  }
+
+  irAPaginaAnteriorPacientes() {
+    if (this.paginaPacientes > 1) {
+      this.cargarPacientes(this.paginaPacientes - 1);
+    }
+  }
+
+  irAPaginaSiguientePacientes() {
+    const totalPaginas = Math.ceil(this.totalPacientes / this.pacientesPorPagina);
+    if (this.paginaPacientes < totalPaginas) {
+      this.cargarPacientes(this.paginaPacientes + 1);
+    }
+  }
+
+  getTotalPaginasPacientes(): number {
+    return Math.ceil(this.totalPacientes / this.pacientesPorPagina);
+  }
+
+  // Paginación Doctores
+  cargarDoctores(pagina: number) {
+    this.cargandoDoctores = true;
+    this.doctorService.getDoctores(pagina, this.doctoresPorPagina).subscribe({
+      next: (response: any) => {
+        this.doctores = response.data || response;
+        this.totalDoctores = response.total || this.doctores.length;
+        this.paginaDoctores = pagina;
+        this.cargandoDoctores = false;
+      },
+      error: (err: any) => {
+        console.error('Error al cargar doctores:', err);
+        this.doctores = [];
+        this.cargandoDoctores = false;
+      }
+    });
+  }
+
+  irAPaginaAnteriorDoctores() {
+    if (this.paginaDoctores > 1) {
+      this.cargarDoctores(this.paginaDoctores - 1);
+    }
+  }
+
+  irAPaginaSiguienteDoctores() {
+    const totalPaginas = Math.ceil(this.totalDoctores / this.doctoresPorPagina);
+    if (this.paginaDoctores < totalPaginas) {
+      this.cargarDoctores(this.paginaDoctores + 1);
+    }
+  }
+
+  getTotalPaginasDoctores(): number {
+    return Math.ceil(this.totalDoctores / this.doctoresPorPagina);
   }
 
   onClickEstadisticas() {
@@ -119,10 +200,7 @@ export class MainAdminComponent implements OnInit {
       .subscribe({
         next: () => {
           // Actualizar la lista de doctores después de eliminar
-          this.doctorService.getDoctores().subscribe((doctores: Doctor[]) => {
-            this.doctores = doctores;
-            // Si tienes una lista filtrada o mostrada, actualízala aquí también si es necesario
-          });
+          this.cargarDoctores(this.paginaDoctores);
           // Si tienes la referencia al doctor en la lista actual, actualiza su estado localmente
           const idx = this.doctores.findIndex(
             (d) => d.id === this.doctorAEliminar!.id
@@ -133,7 +211,7 @@ export class MainAdminComponent implements OnInit {
           this.showEliminarDoctorModal = false;
           this.doctorAEliminar = null;
         },
-        error: (err) => {
+        error: (err: any) => {
           console.error('Error al desactivar doctor:', err);
           this.showEliminarDoctorModal = false;
           this.doctorAEliminar = null;
@@ -150,19 +228,10 @@ export class MainAdminComponent implements OnInit {
   onclickConfirmar(idTurno: string) {
     if (!idTurno) return;
     this.turnoService.confirmarTurno(idTurno, this.token).subscribe(() => {
-      // Actualizar la lista de turnos después de confirmar
-      this.turnoService.getTurnosPendientes().subscribe((turnos: Turno[]) => {
-        this.turnos = turnos;
-        this.calcularTotalPaginas();
-        // Mantener en la misma página o ir a la anterior si estamos vacíos
-        if (this.paginaActual > this.totalPaginas) {
-          this.irAPagina(this.totalPaginas);
-        } else {
-          this.irAPagina(this.paginaActual);
-        }
-        this.filtrarTurnos(); // Refiltrar para actualizar la vista
-        this.showConfirmPagoModal = true;
-      });
+      // Recargar la página actual
+      this.cargarTurnos(this.paginaActual);
+      this.filtrarTurnos();
+      this.showConfirmPagoModal = true;
     });
   }
 

@@ -50,8 +50,10 @@ export class DoctorService {
     });
   }
 
-  getDoctores() {
-    return this.http.get<ApiDoctorResponse[]>(this.apiUrl).pipe(
+  getDoctores(pagina: number = 1, limite: number = 10) {
+    return this.http.get<ApiDoctorResponse[]>(this.apiUrl, {
+      params: { pagina: pagina.toString(), limite: limite.toString() }
+    }).pipe(
       map((arr) => arr.map(d => this.normalizeDoctor(d)))
     );
   }

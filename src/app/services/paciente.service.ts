@@ -50,9 +50,10 @@ export class PacienteService {
     );
   }
 
-  getAllPacientes(token: string) {
+  getAllPacientes(token: string, pagina: number = 1, limite: number = 10) {
     return this.http.get<ApiPacienteResponse[]>(`${this.apiUrl}`, {
       headers: { Authorization: `Bearer ${token}` },
+      params: { pagina: pagina.toString(), limite: limite.toString() }
     }).pipe(
       map(arr => arr.map(p => this.normalizePaciente(p)))
     );

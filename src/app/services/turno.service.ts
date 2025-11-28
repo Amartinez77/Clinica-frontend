@@ -89,8 +89,10 @@ export class TurnoService {
   getTurnosByFecha(fecha: string) {
     return this.http.get<Turno[]>(`${this.apiUrl}/fecha`, { params: { fecha: fecha } });
   }
-  getTurnosPendientes() {
-    return this.http.get<Turno[]>(`${this.apiUrl}/estado/pendiente`);
+  getTurnosPendientes(pagina: number = 1, limite: number = 5) {
+    return this.http.get<Turno[]>(`${this.apiUrl}/estado/pendiente`, { 
+      params: { pagina: pagina.toString(), limite: limite.toString() } 
+    });
   }
   getTurnosByEstado(estado: string,idPaciente:string) {
     return this.http.get<Turno[]>(`${this.apiUrl}/estado/${estado}/paciente/${idPaciente}`);
